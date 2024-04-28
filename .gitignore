@@ -1,8 +1,11 @@
 application.yml
-.mp3
-.ipynb_checkpoints
-.wav
-.csv
+__pycache__
+pretrained_models/
+music/
+*.mp3
+*.ipynb_checkpoints
+*.wav
+*.csv
 
 # Created by https://www.toptal.com/developers/gitignore/api/windows,macos,intellij,visualstudiocode,java
 # Edit at https://www.toptal.com/developers/gitignore?templates=windows,macos,intellij,visualstudiocode,java
