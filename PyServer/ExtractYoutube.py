@@ -42,6 +42,21 @@ class ExtractYoutube():
                     aws_secret_access_key=self.secret_key,
                     region_name="ap-northeast-2"
                     )
+        
+        note_list = ['C1', 'C#1', 'D1', 'D#1', 'E1', 'F1', 'F#1', 'G1', 'G#1', 'A1', 'A#1', 'B1',
+             'C2', 'C#2', 'D2', 'D#2', 'E2', 'F2', 'F#2', 'G2', 'G#2', 'A2', 'A#2', 'B2',
+             'C3', 'C#3', 'D3', 'D#3', 'E3', 'F3', 'F#3', 'G3', 'G#3', 'A3', 'A#3', 'B3',
+             'C4', 'C#4', 'D4', 'D#4', 'E4', 'F4', 'F#4', 'G4', 'G#4', 'A4', 'A#4', 'B4',
+             'C5', 'C#5', 'D5', 'D#5', 'E5', 'F5', 'F#5', 'G5']
+
+        scale_list = [[32.7, 34.65], [34.65, 36.71], [36.71, 38.89], [38.89, 41.20], [41.20, 43.65], [43.65, 46.25], [46.25, 49.00], [49.00, 51.91], [51.91, 55.00], [55.00, 58.27], [58.27, 61.74], [61.74, 65.41],
+                    [65.41, 69.30], [69.30, 73.42], [73.42, 77.78], [77.78, 82.41], [82.41, 87.31], [87.31, 92.50], [92.50, 98.00], [98.00, 103.83], [103.83, 110.00], [110.00, 116.54], [116.54, 123.47], [123.47, 130.81],
+                    [130.81, 138.59], [138.59, 146.83], [146.83, 155.56], [155.56, 164.81], [164.81, 174.61], [174.61, 185.00], [185.00, 196.00], [196.00, 207.65], [207.65, 220.00], [220.00, 233.08], [233.08, 246.94], [246.94, 261.63],
+                    [261.63, 277.18], [277.18, 293.66], [293.66, 311.13], [311.13, 329.63], [329.63, 349.23], [349.23, 369.99], [369.99, 392.00], [392.00, 415.30], [415.30, 440.00], [440.00, 466.16], [466.16, 493.88], [493.88, 523.25],
+                    [523.25, 554.37], [554.37, 587.33], [587.33, 622.25], [622.25, 659.26], [659.26, 698.46], [698.46, 739.99], [739.99, 783.99], [783.99, 830.61], [830.61, 880.00], [880.00, 932.33], [932.33, 987.77], [987.77, 1046.50]]
+
+        self.note_freq_dict = dict(zip(note_list, scale_list))
+        os.makedirs("./user", exist_ok=True)
 
     def download_youtube_video_as_mp3(self, video_url, video_title,output_path):
         try:
@@ -112,19 +127,43 @@ class ExtractYoutube():
                     self.video_id = video['id']
                     self.duration = video['duration']
                     self.uploader = video['uploader']
-                    flag = True
-                    for i in range(len(self.playlist_datas)):
-                        song = self.playlist_datas.loc[i]
-                        if song['title'] == self.title or song['id'] == self.video_id:
-                            flag = False
-                            break
-                    if flag:
-                        self.playlist_datas.loc[len(self.playlist_datas)] = [self.title,self.url,self.video_id,playlist_name,self.duration,self.uploader,False,False,False,False,False,False]
+                    total_value = [self.title,self.url,self.video_id,playlist_name,self.duration,self.uploader,False,False,False,False,False,False]
+                    self.playlist_datas.loc[len(self.playlist_datas)] = total_value
                 self.playlist_datas.to_csv(f"{playlist_name}.csv",index = False)
+                return total_value
         except Exception as e:
             print(e, "inappropriate youtube_link")
+            return f"{e} occured in downlaoding youtube"
 
         # self.playlist_datas.to_csv("test.csv",index = False)
+   
+    def get_song_info(self, video_url, playlist_name):
+
+        if os.path.exists(f"{playlist_name}.csv"):
+            self.playlist_datas = pd.read_csv(f"{playlist_name}.csv")
+        else:
+            self.playlist_datas = pd.DataFrame(columns=["title","link","id","playlist_title","duration","uploader","youtube_downloaded","spleeter","remove_space_wav_to_s3","vocal_range","mfcc_origin","mfcc_after_transform"])
+        
+        ydl_opts = {
+            'quiet': True,  # 로그 출력 억제
+            "ignoreerrors": False
+        }
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                video_info = ydl.extract_info(video_url, download=False)
+                # 단일 동영상 정보 출력
+                self.title = self.remove_special_characters(video_info['title'])
+                self.url = video_url
+                self.video_id = video_info['id']
+                self.duration = video_info['duration']
+                self.uploader = video_info['uploader']
+                total_value = [self.title, self.url, self.video_id, playlist_name, self.duration, self.uploader, False, False, False, False, False, False]
+                self.playlist_datas.loc[len(self.playlist_datas)] = total_value
+                return total_value
+        except Exception as e:
+            print(e, "inappropriate youtube_link")
+            return f"{e} occured in downloading youtube"
+
 
     def calSpleeter(self,output_path,file_path, quality = str(2)):
         output_path = output_path[:-4]
@@ -146,7 +185,7 @@ class ExtractYoutube():
         output.export(output_path, format="wav")
         file_path = file_path.replace("spleeter","music")
         print(file_path)
-        self.sendS3(output_path,file_path)
+        # self.sendS3(output_path,file_path)
 
     def extract_mfcc_features(self, file_path):
         # wav 파일 로드
@@ -258,6 +297,60 @@ class ExtractYoutube():
         # 저장
         wavfile.write(output_path, sr, y_out_int)
 
+    def extract_user_frequency(self,file_path, time_interval=0.1, volume_thresh=0.01): # time_interval[출력 시간 간격], volume_thresh[볼륨 임계값]
+
+        pDetection = aubio.pitch("default", 2048, 2048//2, 44100)       # aubio.pitch : 주파수(음높이)감지 객체 생성 코드
+                                                                        # ("default", 2048, 2048//2, 44100)은 각각 감지 알고리즘, 버퍼 사이즈, 버퍼 간격 사이즈, 샘플링 레이트인데 기본값 사용해서 안중요함
+        pDetection.set_unit("Hz")                                       # set_unit : 주파수 감지 객체의 단위를 Hz로 정한 거임
+        pDetection.set_silence(-20)                                     # 소리 감지 임계값을 -40dB로 설정(** 이걸로 삐슝빠슝 없앨 수 있긴한데 노래마다 다를거같아서 못건드리고 있음. 서버 열어서 돌려보고 판단)
+
+        src = aubio.source(file_path, 44100, 2048//2)    # 오디오 파일 가져오는 코드(liborsa의 file.readwav랑 똑같은 역할)
+        total_frames = 0                                 # 현재까지 재생한 프레임 위치(시간) 축적 변수
+
+        pitches = []            # 감지된 주파수를 저장하는 리스트
+        times = []              # 주파수 감지 될때의 시간을 저장하는 리스트
+        max_pitch = 0           # 최고 음역대 저장 변수
+        max_pitch_note = None   # 최고 음역대(Hz)에 대응되는 음계 저장 변수 - ex) max_pitch가 400Hz일때 A#4 이런식으로 저장되게 하려고
+        filtered_pitches = {"time" : [], "value" : []}
+        one_block = {"start" : - 1 , "end" : -1 , "data" : []}
+        threshold_hz = 100
+        threshold_time = 0.3
+
+
+        while True:
+            samples, read = src()                             # samples : 버퍼 샘플 데이터 배열 / read : 버퍼 사이즈
+            pitch = pDetection(samples)[0]                    # samples[0]은 감지된 주파수 / samples[1]은 감지된 주파수의 신뢰성(** 이거 threashold 잡아서 이상치 처리도 가능해 보이긴 함)
+            volume = np.sum(samples**2) / len(samples) * 100  # volume 구하는건데 이건 그냥 전자기학적 공식
+
+            if pitch and volume > volume_thresh:              # 감지된 주파수가 있고 and 그 주파수가 볼륨 임계값 보다 큰 경우,
+                current_pitch = music21.pitch.Pitch()         # 현재의 주파수를 기준으로 해서 music21객체 생성
+                current_pitch.frequency = pitch               # Hz를 음계로 변환하기 위해서 현재 주파수를 music21 객체의 picth로 설정
+
+                ##########################  ##########################
+                if 80 <= pitch <= 830:
+                    pitches.append(pitch)
+                    times.append(total_frames/src.samplerate)
+            total_frames += read
+            if read < src.hop_size:
+                break
+
+        return dict(zip(times,pitches))
+
+    def estimate_c(self,user_voice_path, app_pitch):
+
+        # 사용자의 음성데이터로부터 시간별 주파수를 가져오는 부분
+        user_frequency_dict = self.extract_user_frequency(user_voice_path)
+        user_data_number = len(user_frequency_dict)
+        correct_rate_list = dict()
+
+        for scale, range in self.note_freq_dict.items():
+            correct = 0
+            for sec, freq in user_frequency_dict.items():
+                if self.note_freq_dict[scale][0] <= freq <= self.note_freq_dict[scale][1]:
+                    correct += 1
+            correct_rate_list[scale] = (correct/user_data_number)
+        return int(correct_rate_list[app_pitch]*100)
+
     def sendS3(self,file_name, key, bucket = "musicvocal"):
         '''
             file_name = '업로드 할 filepath' 
@@ -307,14 +400,11 @@ class ExtractYoutube():
         cleaned_text = cleaned_text.replace(" ","_")
         return cleaned_text
 
-    def run(self,playlist_csv):
+    def run(self,playlist_csv,data):
         # 폴더 생성
         os.makedirs("./music", exist_ok=True)
         os.makedirs("./spleeter", exist_ok=True)
-        os.makedirs("./removed_space", exist_ok=True)
-        os.makedirs(f"./removed_space/{playlist_csv[:-4]}", exist_ok=True)
-        inappropriate_youtube = []
-        data = pd.read_csv(playlist_csv)
+        
         for i in range(len(data)):
             print(f"{i}th music is trying..")
             # link 데이터 추출
@@ -324,12 +414,10 @@ class ExtractYoutube():
             playlist_title = song['playlist_title']
             music_path = f"./music/{playlist_title}/{music_title}.mp3"
             spleeter_path = f"./spleeter/{playlist_title}/{music_title}.wav"
-            remove_silence_path = f"./removed_space/{playlist_title}/{music_title}.wav"
             
             if song['duration'] >= 600:
                 print("It's too long music")
                 continue
-
             try:
                 # Download
                 if not song['youtube_downloaded'] or song['youtube_downloaded'] == "False" or '[Errno 2]' in song['youtube_downloaded'] :
@@ -345,56 +433,56 @@ class ExtractYoutube():
                     self.calSpleeter(spleeter_path,music_path)
                     data.loc[i, 'spleeter'] = True
                     time.sleep(0.3)
-                
-                # remove_silence
-                if not song['remove_space_wav_to_s3'] or song['remove_space_wav_to_s3'] == "False":
-                    self.remove_silence(spleeter_path,remove_silence_path)
-                    data.loc[i, 'remove_space_wav_to_s3'] = True
                     data.to_csv(playlist_csv,index = False)
-
+                
                 try:
                     os.remove(music_path)
-                    os.remove(spleeter_path)
-                    os.remove(remove_silence_path)
+                    highest_pitch = self.extract_highest_pitch(spleeter_path)
+                    print(f"{i}th music is completed")
+                    return highest_pitch
                 except OSError as e:
                     print(f"삭제 중 오류가 발생했습니다:", e)
-                print(f"{i}th music is completed")
+                    return {"최고음 추출 실패"}
             except Exception as e:
                 print(e)
                 data.loc[i] = [music_title,url,song['id'],playlist_title,song['duration'],song['uploader'],e,False,False,False,False,False]
                 data.to_csv(playlist_csv,index = False)
 
-    def activate_extrawav(self,playlist_csv):
+    def activate_extrawav(self,playlist_csv,data):
         # 폴더 생성
         os.makedirs("./removed_space", exist_ok=True)
         os.makedirs("./removed_extra", exist_ok=True)
-        data = pd.read_csv(playlist_csv)
+        os.makedirs("./removed_space", exist_ok=True)
+        os.makedirs(f"./removed_space/{playlist_csv[:-4]}", exist_ok=True)
 
         for i in range(len(data)):
             try:
                 print(f"{i}th music is trying..")
                 song = data.loc[i]
+                url = song['link']
                 music_title = song['title']
                 playlist_title = song['playlist_title']
                 # 폴더 생성 확인
                 os.makedirs(f"./removed_space/{playlist_title}", exist_ok=True)
                 os.makedirs(f"./removed_extra/{playlist_title}", exist_ok=True)
 
-                # wav파일 Download
-                download_path = f"./music/{playlist_title}/{music_title}.wav"
-                wav_file_path = f"./removed_space/{playlist_title}/{music_title}.wav"
+                spleeter_path = f"./spleeter/{playlist_title}/{music_title}.wav"    
+                remove_silence_path = f"./removed_space/{playlist_title}/{music_title}.wav"
                 output_filepath = f"./removed_extra/{playlist_title}/{music_title}.wav"
-                self.downloadS3(wav_file_path,download_path)
-                time.sleep(0.3)
+
+                # remove_silence
+                if not song['remove_space_wav_to_s3'] or song['remove_space_wav_to_s3'] == "False":
+                    self.remove_silence(spleeter_path,remove_silence_path)
+                    data.loc[i, 'remove_space_wav_to_s3'] = True
+
                 # 최고음 추출
                 if not song['vocal_range'] or song['vocal_range'] =="False":
-                    highest_pitch = self.extract_highest_pitch(wav_file_path)
+                    highest_pitch = self.extract_highest_pitch(remove_silence_path)
                     data.loc[i, 'vocal_range'] = highest_pitch
-                    data.to_csv(playlist_csv,index = False)
                     time.sleep(0.1)
                     
-                    #  extraHz 제외 후 최고음 다시 추출
-                    self.remove_extraHz(wav_file_path,output_filepath,highest_pitch)
+                    #  extraHz 제외
+                    self.remove_extraHz(remove_silence_path,output_filepath,highest_pitch)
 
                     # S3 저장 후 파일 삭제
                     self.sendS3(output_filepath,output_filepath)
@@ -407,7 +495,8 @@ class ExtractYoutube():
                     data.to_csv(playlist_csv,index = False)
 
                 try:
-                    os.remove(wav_file_path)
+                    os.remove(spleeter_path)
+                    os.remove(remove_silence_path)
                     os.remove(output_filepath)
                 except OSError as e:
                     print(f"삭제 중 오류가 발생했습니다:", e)
@@ -415,167 +504,5 @@ class ExtractYoutube():
 
             except Exception as e:
                 print(e)
-                # data.loc[i] = [music_title,url,song['id'],playlist_title,song['duration'],song['uploader'],e,False,False,False,False,False]
-                # data.to_csv(playlist_csv,index = False)
-
-et = ExtractYoutube()
-et.run("trot.csv")
-et.run("ballad.csv")
-
-# et.activate_extrawav("infos.csv")
-et.activate_extrawav("trot.csv")
-et.activate_extrawav("ballad.csv")
-# et.activate_extrawav()
-# et.activate_extrawav()
-# et.sendS3("jazz.csv","./data/jazz.csv")
-et.sendS3("trot.csv","./data/trot.csv")
-et.sendS3("ballad.csv","./data/ballad.csv")
-# et.downloadS3("hiphop.csv","./data/hiphop.csv")
-# et.downloadS3("jazz.csv","./data/jazz.csv")
-# et.downloadS3("trot.csv","./data/trot.csv") 
-# et.downloadS3("ballad.csv","./data/ballad.csv")
-
-# data = pd.read_csv("jazz.csv")
-# data['vocal_range'] = False
-# data['mfcc_after_transform'] = False
-# data.to_csv("jazz.csv",index = False)
-
-def activate_extract_youtube_link(link,title):
-    # 플레이리스트를 넣으면 링크를 뽑아 csv로 저장
-
-    # for playlist in playlists:
-    et = ExtractYoutube()
-    et.get_playlist_info(link,title)
-
-def activate_youtube_download():
-    # csv파일들을 읽어서 노래 다운
-    et = ExtractYoutube()
-    infos = pd.read_csv("infos.csv")
-    for i in range(len(infos)):
-        song = infos.loc[i]
-        print("index : " , i)
-        if not song['youtube_downloaded']:
-            et.download_youtube_video_as_mp3(song['link'],song['title'],song['playlist_title'])
-            infos.loc[i, 'youtube_downloaded'] = True
-            infos.to_csv("infos.csv",index = False)
-
-def activate_spleeter():
-    et = ExtractYoutube()
-    infos = pd.read_csv("infos.csv")
-    for i in range(len(infos)):
-            print(i)
-            music = infos.loc[i]
-            if not music['spleeter']:
-                try :
-                    music_title = music['title']
-                    playlist_title = music['playlist_title']
-
-                    output_path = f"./spleeter/{playlist_title}/{music_title}"
-                    file_path = f"./music/{playlist_title}/{music_title}.mp3"
-                    et.calSpleeter(output_path,file_path)
-
-                    infos.loc[i, 'spleeter'] = True
-                    infos.to_csv("infos.csv",index = False)
-                except Exception as e:
-                    print(e)
-
-def activate_remove_space():
-    # csv파일들을 읽어서 노래 다운
-    et = ExtractYoutube()
-    infos = pd.read_csv("infos.csv")
-
-    if not os.path.exists("./removed_space"):
-        os.makedirs("./removed_space")
-
-    for i in range(len(infos)):
-        song = infos.loc[i]
-        if not song['remove_space_wav_to_s3']:
-            song_title =song['title']
-            playlist_title =song['playlist_title']
-
-            file_path = f"./spleeter/{playlist_title}/{song_title}.wav"
-            output_path = f"./removed_space/{playlist_title}/{song_title}.wav"
-            if not os.path.exists(f"./removed_space/{playlist_title}"):
-                os.makedirs(f"./removed_space/{playlist_title}")
-
-            if os.path.exists(output_path):
-                infos.loc[i, 'remove_space_wav_to_s3'] = True
-                infos.to_csv("infos.csv",index = False)
-                continue
-
-            try:
-                print(i)
-                et.remove_silence(file_path,output_path)
-                infos.loc[i, 'remove_space_wav_to_s3'] = True
-                infos.to_csv("infos.csv",index = False)
-            except Exception as e:
-                print(e,song_title,playlist_title)
-
-def activate_mfcc():
-    infos = pd.read_csv("infos_copy.csv")
-    et = ExtractYoutube()
-
-    for i in range(len(infos)):
-        song = infos.loc[i]
-        if not song['mfcc_value']:
-            song_title =song['title']
-            playlist_title =song['playlist_title']
-
-            file_path = f"./music/{playlist_title}/{song_title}.mp3"
-            try:
-                print(i)
-                mfcc_val = et.extract_mfcc_features(file_path)
-                infos.loc[i, 'mfcc_value'] = str(mfcc_val)
-                infos.to_csv("infos.csv",index = False)
-            except Exception as e:
-                print(e,song_title,playlist_title)
-
-def activate_highest_peach():
-    infos = pd.read_csv("infos.csv")
-    et = ExtractYoutube()     
-    for i in range(len(infos)):
-        song = infos.loc[i]
-        if song['vocal_range'] == "False" or not song['vocal_range']: # boolean으로 지금까지 하다가, False인데 열안에 값이 하나라도 923.1 들어가면 False가 문자열 False로 인식됨
-            song_title =song['title']      
-            playlist_title =song['playlist_title']
-            file_path = f"./removed_space/{playlist_title}/{song_title}.wav"
-            try:
-                print(i)
-                print(file_path)
-                vocal_range = et.extract_highest_pitch(file_path)
-                infos.loc[i, 'vocal_range'] = vocal_range
-                infos.to_csv("infos.csv",index = False)
-            except Exception as e:
-                print(e)
-
-
-# activate_youtube_download()
-# activate_spleeter()
-# activate_remove_space()
-# activate_mfcc()
-#activate_highest_peach()
-
-# playlist들 url 넣어서 보내면 노래 한곡한곡 뽑는 코드 실행
-# playlist_urls = [
-#     "https://www.youtube.com/playlist?list=PLkijzJW7zLBVjWGGtcA_Q2Vu8UuG5kLvt",
-#     "https://www.youtube.com/playlist?list=PLtodMGvo4t2tkkrAwmErsV3bHbr_hRhvJ",
-#     "https://www.youtube.com/playlist?list=PLF0EDAD63736E60B1",
-#     "https://www.youtube.com/playlist?list=PL1y4EAbxquZ-a_PCOHdXXwdiAEeaS9VmR",
-#     "https://www.youtube.com/playlist?list=PLpcbzk7Z9-ywZBeFYOrDvn_VM76Tvk2yt",
-#     "https://www.youtube.com/playlist?list=PL-FVH5VWgRPE_91MmVotuEmBWYED6Gph6",
-#     "https://www.youtube.com/playlist?list=PLTDmNT4owFz2pivbgvdIIUR3yYTx6LCY0",
-#     "https://www.youtube.com/playlist?list=PLQt-Kwdd_w5F2S9f2jk6cMRbQI3T-I5bK",
-#     "https://www.youtube.com/playlist?list=PLHHtv-Y_2jvToAwHzi9ijokpYGL5MFjYM",
-#     "https://www.youtube.com/playlist?list=PL5DfzBfnyk4XtJDX2xoEBjP_HTmYmPiCt",
-#     "https://www.youtube.com/playlist?list=PLK9vuK1BUmgr8gCPLrTqUH_dwM4r1NsNP",
-#     "https://www.youtube.com/playlist?list=PL4brMRtrvP4H3kazafIRbtWkB8GcGFeLu",
-#     "https://www.youtube.com/playlist?list=PLTZ4XeC4jx1oxNrCGOGnI4NwvvqFsfQrj",
-#     "https://www.youtube.com/playlist?list=PLjo9R7bl95CAjiYZY7q-P-7XF6QmibZdD",
-#     "https://www.youtube.com/playlist?list=PLEFDE3F40ACCEF0BE",
-#     "https://www.youtube.com/playlist?list=PL5jqJ2fm-QnglMlp3i4CaqkEpyuDr_Wrq",
-#     "https://www.youtube.com/playlist?list=PL3WsJs37OJFMCf6QT-5_CtFTWGfZ4KUDG",
-#     "https://www.youtube.com/playlist?list=PL5gOt5XOe6KCmxfMiejAtwz5kiYB3xYWP"
-# ]
-
-# for playlist in playlist_urls:
-#     activate_extract_youtube_link(playlist,"hiphop")
+                data.loc[i] = [music_title,url,song['id'],playlist_title,song['duration'],song['uploader'],e,False,False,False,False,False]
+                data.to_csv(playlist_csv,index = False)
