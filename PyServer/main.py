@@ -1,39 +1,60 @@
+from pydantic import BaseModel
 from fastapi import FastAPI
-from youtube_download import youtube_download
-from highest_pitch_extraction import extract_highest_pitch
+import ExtractYoutube
 import subprocess
+import datetime
+import pandas as pd
+import shutil
 import os
-
 
 app = FastAPI()
 
-@app.get("/")
+TODAY = lambda: datetime.datetime.now().strftime('%Y%m%d')
+NOW = lambda: datetime.datetime.now().strftime('%H%M%S')
+
+class Item(BaseModel):
+    file_link: str
+    target_pitch: str
+
+# 싱글톤 객체 생성
+extract_youtube = ExtractYoutube.ExtractYoutube()
+@app.get('/')
 async def root():
+    return {"message" : "test"}
 
+@app.post("/range_test/")
+async def range_test(item: Item):
+    '''
+        사용자가 음성 데이터를 받아서 처리 후 결과값 반환
+    '''
+    now_time = NOW()
+    user_voice_link = f"./user/{now_time}.wav"
+    extract_youtube.downloadS3(file_name = user_voice_link, key = item.file_link)
+    extract_youtube.remove_silence(user_voice_link,user_voice_link)
+    correct_percentage = extract_youtube.estimate_c(user_voice_link,item.target_pitch)
 
-    test = '''엠씨더맥스,잠시만안녕,https://www.youtube.com/watch?v=ikx0NPc4f5E
-엠씨더맥스,어디에도,https://www.youtube.com/watch?v=afYxfsgiuLI
-임창정,내가 저지른 사람,https://www.youtube.com/watch?v=kowTrv02LHw
-나얼,바람 기억,https://www.youtube.com/watch?v=4MbzvYnQSlw
-더 크로스,돈 크라이,https://www.youtube.com/watch?v=A-ZBkJ2Frbw
-박재정,헤어지자 말해요,https://www.youtube.com/watch?v=SrQzxD8UFdM
-임한별,이별하러 가는 길,https://www.youtube.com/watch?v=K1FRxQfvctw
-허각,나를 사랑했던 사람아,https://www.youtube.com/watch?v=vepz3RlTd4M
-닐로,지나오다, https://www.youtube.com/watch?v=uqQqnWfJyAA
-닐로,벗,https://www.youtube.com/watch?v=trXGsyWlkGM
-임재현,사랑에 연습이 있었다면,https://www.youtube.com/watch?v=T8XbVWBEMfw
-임재현,조금 취했어,https://www.youtube.com/watch?v=VgbIDfPJIFs
-장덕철,그날처럼,https://www.youtube.com/watch?v=v6_GwXU1lkg'''
-    lst = []
-    for song in test.split('\n'):
-        print(song.split("\t"))
-        singer,title,link =  song.split(",")
-        result = youtube_download(singer, title, link)
+    return {"correct_percentage": correct_percentage}
 
-        if result:
-            command = ["spleeter", "separate", "-p", "spleeter:2stems", "-o", "music", f"./music/{singer}_{title}"]
-            subprocess.run(command, shell=True)
-            os.remove(f"./music/{singer}_{title}.mp3")
-            lst.append(extract_highest_pitch(f"./music/{singer}_{title}.mp3"))
-
-    return {"message": f"{lst}"}
+@app.post("/youtube_extract/")
+async def youtube_extract(item : Item):
+    '''
+        사용자가 입력한 youtube_link의 음역대를 추출하여 반환한다.
+        DB에 저장하기 위한 추가 변환도 수행한다.
+    '''
+    youtube_link = item.file_link
+    total_value = extract_youtube.get_song_info(youtube_link,"user_input")
+    song = pd.DataFrame(data = [total_value],columns=["title","link","id","playlist_title","duration","uploader","youtube_downloaded","spleeter","remove_space_wav_to_s3","vocal_range","mfcc_origin","mfcc_after_transform"])
+    highest_pitch =extract_youtube.run("user_input.csv",song)
+    return {"highest_pitch": str(highest_pitch)}
+    
+@app.post("/range_test/")
+async def music_to_s3():
+    '''
+        youtube_link를 전체 처리한 후, s3에 저장 및 database에 저장할 수 있는 값 반환
+    '''
+    # youtube_extract(youtube_link)
+    new_name = f"./user_input_collection/{TODAY()}_user_input.csv"
+    os.rename("user_input.csv", new_name)
+    data = pd.read_csv(new_name)
+    extract_youtube.activate_extrawav(new_name,data)
+    return {"message": "completed"}
