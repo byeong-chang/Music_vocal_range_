@@ -4,13 +4,13 @@ import pandas as pd
 et = ExtractYoutube.ExtractYoutube()
 data = pd.read_csv("trot.csv")
 et.run("trot.csv",data)
-et.activate_extrawav("trot.csv",data)
-et.sendS3("trot.csv","./data/trot.csv")
+# et.activate_extrawav("trot.csv",data)
+# et.sendS3("trot.csv","./data/trot.csv")
 
 data = pd.read_csv("ballad.csv")
 et.run("ballad.csv",data)
-et.activate_extrawav("ballad.csv",data)
-et.sendS3("ballad.csv","./data/ballad.csv")
+# et.activate_extrawav("ballad.csv",data)
+# et.sendS3("ballad.csv","./data/ballad.csv")
 
 # et.activate_extrawav("infos.csv")
 # et.activate_extrawav()

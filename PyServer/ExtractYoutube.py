@@ -420,7 +420,7 @@ class ExtractYoutube():
                 continue
             try:
                 # Download
-                if not song['youtube_downloaded'] or song['youtube_downloaded'] == "False" or '[Errno 2]' in song['youtube_downloaded'] :
+                if not song['youtube_downloaded'] or song['youtube_downloaded'] == "False" or '[Errno 2]' in song['youtube_downloaded'] or "System error" in song['youtube_downloaded']:
                     self.download_youtube_video_as_mp3(url,music_title,playlist_title)
                     data.loc[i, 'youtube_downloaded'] = True
                     time.sleep(0.3)
@@ -437,6 +437,8 @@ class ExtractYoutube():
                 
                 try:
                     os.remove(music_path)
+                    self.sendS3(spleeter_path,spleeter_path)
+                    os.remove(spleeter_path)
                     highest_pitch = self.extract_highest_pitch(spleeter_path)
                     print(f"{i}th music is completed")
                     return highest_pitch
