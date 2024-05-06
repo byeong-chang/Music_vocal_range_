@@ -1,13 +1,13 @@
-package com.capstone.music_vocal_range;
+package capstone.tunemaker;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class MusicVocalRangeApplication {
+public class TunemakerApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(MusicVocalRangeApplication.class, args);
+		SpringApplication.run(TunemakerApplication.class, args);
 	}
 
 }

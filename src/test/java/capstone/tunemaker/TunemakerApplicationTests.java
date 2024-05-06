@@ -1,10 +1,10 @@
-package com.capstone.music_vocal_range;
+package capstone.tunemaker;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class MusicVocalRangeApplicationTests {
+class TunemakerApplicationTests {
 
 	@Test
 	void contextLoads() {
