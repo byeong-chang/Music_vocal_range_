@@ -73,10 +73,12 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         // JWT 생성 부분
         String token = jwtUtil.createJwt(username, role, 60*60*10L);
 
-        // HTTP RFC 7235 인증 방식에 맞춰 포맷 설정
-        // Authorization : 타입 인증 토근
-        //    Ex) Authorization : Bearer 인증토큰String
-        response.addHeader("Authorization", "Bearer " + token);
+        // JSON 형식으로 JWT 토큰 반환
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(
+                "{\"Authorization\": \"Bearer " + token + "\"}"
+        );
     }
 
     @Override

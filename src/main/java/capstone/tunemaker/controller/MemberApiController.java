@@ -16,15 +16,11 @@ public class MemberApiController {
     private final MemberService memberService;
 
     @PostMapping("/join")
-    public String joinMember(@RequestBody @Validated CreateMemberRequest request){
+    public void joinMember(@RequestBody @Validated CreateMemberRequest request){
 
         if (!request.getPassword1().equals(request.getPassword2())) {
             throw new IllegalArgumentException("Passwords do not match");
         }
         memberService.join(request);
-        return "ok";
     }
-
-
-
 }
