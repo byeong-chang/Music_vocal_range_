@@ -1,6 +1,7 @@
 package capstone.tunemaker.entity;
 
-import capstone.tunemaker.enums.Gender;
+import capstone.tunemaker.entity.embeded.Pitch;
+import capstone.tunemaker.entity.enums.Gender;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,5 +26,7 @@ public class Member {
     private Gender gender;
 
     private String role;
+
+    private Pitch pitch;
 
 }

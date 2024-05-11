@@ -1,6 +1,6 @@
 package capstone.tunemaker.dto;
 
-import capstone.tunemaker.enums.Gender;
+import capstone.tunemaker.entity.enums.Gender;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -2,9 +2,11 @@ package capstone.tunemaker.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class YoutubeResponse {
 
     private String title;
@@ -18,5 +20,7 @@ public class YoutubeResponse {
     private String playlistTitle;
 
     private String uploader;
+
+    private String youtubeUrlId;
 
 }
