@@ -8,6 +8,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.util.concurrent.ExecutionException;
+
 @RestController
 @RequiredArgsConstructor
 public class YoutubeApiController {
@@ -15,7 +17,7 @@ public class YoutubeApiController {
     private final YoutubeService youtubeService;
 
     @PostMapping("/admin")
-    public YoutubeResponse youtubeUrlMusicInfo(@RequestBody @Validated YoutubeRequest youtubeRequest){
+    public YoutubeResponse youtubeUrlMusicInfo(@RequestBody @Validated YoutubeRequest youtubeRequest) throws ExecutionException, InterruptedException {
         return youtubeService.canUserSingThisSong(youtubeRequest);
     }
 

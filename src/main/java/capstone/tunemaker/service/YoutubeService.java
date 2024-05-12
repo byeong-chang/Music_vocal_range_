@@ -10,9 +10,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @Service
 @RequiredArgsConstructor
@@ -23,8 +27,7 @@ public class YoutubeService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final MusicRepository musicRepository;
 
-    @Transactional
-    public YoutubeResponse canUserSingThisSong(YoutubeRequest youtubeRequest) {
+    public YoutubeResponse canUserSingThisSong(YoutubeRequest youtubeRequest) throws ExecutionException, InterruptedException {
 
         String extractedUrlId = extractUrlId(youtubeRequest.getYoutubeUrl());
         Music music = musicRepository.findByUrlId(extractedUrlId);
@@ -35,30 +38,39 @@ public class YoutubeService {
             return youtubeResponse;
         } else {
             HttpEntity<YoutubeRequest> requestEntity = new HttpEntity<>(youtubeRequest);
-            ResponseEntity<YoutubeResponse> responseEntity = restTemplate.exchange(
-                    "http://43.203.56.11:8000/youtube_extract",
-                    HttpMethod.POST,
-                    requestEntity,
-                    YoutubeResponse.class
-            );
+            CompletableFuture<YoutubeResponse> future = CompletableFuture.supplyAsync(() -> {
+                ResponseEntity<YoutubeResponse> responseEntity = restTemplate.exchange(
+                        "http://43.203.56.11:8000/youtube_extract",
+                        HttpMethod.POST,
+                        requestEntity,
+                        YoutubeResponse.class
+                );
+                return responseEntity.getBody();
+            });
 
-            YoutubeResponse youtubeResponse = responseEntity.getBody();
+            YoutubeResponse youtubeResponse = future.get();
 
             if (youtubeResponse != null) {
-                Music newMusic = new Music();
-                newMusic.setTitle(youtubeResponse.getTitle());
-                newMusic.setUrl(youtubeResponse.getYoutubeUrl());
-                newMusic.setHighPitch(youtubeResponse.getHighPitch());
-                newMusic.setDuration(youtubeResponse.getDuration());
-                newMusic.setPlaylistTitle(youtubeResponse.getPlaylistTitle());
-                newMusic.setUploader(youtubeResponse.getUploader());
-                newMusic.setUrlId(youtubeResponse.getYoutubeUrlId());
-
-                musicRepository.save(newMusic);
+                saveMusic(youtubeResponse);
             }
-
             return youtubeResponse;
         }
+    }
+
+    @Async
+    public void saveMusic(YoutubeResponse youtubeResponse) {
+
+        Music newMusic = new Music();
+
+        newMusic.setTitle(youtubeResponse.getTitle());
+        newMusic.setUrl(youtubeResponse.getYoutubeUrl());
+        newMusic.setHighPitch(youtubeResponse.getHighPitch());
+        newMusic.setDuration(youtubeResponse.getDuration());
+        newMusic.setPlaylistTitle(youtubeResponse.getPlaylistTitle());
+        newMusic.setUploader(youtubeResponse.getUploader());
+        newMusic.setUrlId(youtubeResponse.getYoutubeUrlId());
+
+        musicRepository.save(newMusic);
     }
 
     private String extractUrlId(String url) {
