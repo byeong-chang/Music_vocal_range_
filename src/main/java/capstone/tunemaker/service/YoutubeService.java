@@ -7,11 +7,12 @@ import capstone.tunemaker.entity.enums.Genre;
 import capstone.tunemaker.repository.MusicRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
-
+import org.springframework.web.client.RestTemplate;
 
 @Service
 @RequiredArgsConstructor
@@ -19,27 +20,43 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Transactional
 public class YoutubeService {
 
-    private final WebClient webClient = WebClient.create("http://43.203.56.11:8000");
+    private final RestTemplate restTemplate = new RestTemplate();
     private final MusicRepository musicRepository;
 
+    @Transactional
     public YoutubeResponse canUserSingThisSong(YoutubeRequest youtubeRequest) {
 
         String extractedUrlId = extractUrlId(youtubeRequest.getYoutubeUrl());
         Music music = musicRepository.findByUrlId(extractedUrlId);
 
         if (music != null) {
-            // Music 테이블에 있는 title, url, high_pitch를 Mono<YoutubeResponse> 형식으로 반환 : 비동기 처리(백 그라운드 처리를 위해서)
             YoutubeResponse youtubeResponse = new YoutubeResponse();
             youtubeResponse.setYoutubeUrlId(music.getUrlId());
             return youtubeResponse;
         } else {
-            // API 통신을 통해 YoutubeResponse를 가져옵니다.
-            YoutubeResponse youtubeResponse = webClient.post()
-                    .uri("/youtube_extract")
-                    .body(BodyInserters.fromValue(youtubeRequest))
-                    .retrieve()
-                    .bodyToMono(YoutubeResponse.class)
-                    .block(); // block() 메서드를 사용하여 동기적으로 API 요청을 보냅니다.
+            HttpEntity<YoutubeRequest> requestEntity = new HttpEntity<>(youtubeRequest);
+            ResponseEntity<YoutubeResponse> responseEntity = restTemplate.exchange(
+                    "http://43.203.56.11:8000/youtube_extract",
+                    HttpMethod.POST,
+                    requestEntity,
+                    YoutubeResponse.class
+            );
+
+            YoutubeResponse youtubeResponse = responseEntity.getBody();
+
+            if (youtubeResponse != null) {
+                Music newMusic = new Music();
+                newMusic.setTitle(youtubeResponse.getTitle());
+                newMusic.setUrl(youtubeResponse.getYoutubeUrl());
+                newMusic.setHighPitch(youtubeResponse.getHighPitch());
+                newMusic.setDuration(youtubeResponse.getDuration());
+                newMusic.setPlaylistTitle(youtubeResponse.getPlaylistTitle());
+                newMusic.setUploader(youtubeResponse.getUploader());
+                newMusic.setUrlId(youtubeResponse.getYoutubeUrlId());
+
+                musicRepository.save(newMusic);
+            }
+
             return youtubeResponse;
         }
     }
