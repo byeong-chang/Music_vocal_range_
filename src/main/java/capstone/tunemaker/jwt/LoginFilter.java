@@ -1,6 +1,6 @@
 package capstone.tunemaker.jwt;
 
-import capstone.tunemaker.dto.CustomMemberDetails;
+import capstone.tunemaker.dto.create.CustomMemberDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -65,6 +65,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         // authentication으로 부터 username 추출
         String username = customMemberDetails.getUsername();
 
+        Long userId = customMemberDetails.getMemberId();
+
         // authentication으로 부터 role 추출
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
@@ -73,7 +75,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String role = auth.getAuthority();
 
         // JWT 생성 부분
-        String token = jwtUtil.createJwt(username, role, 24*60*60*100L);
+        String token = jwtUtil.createJwt(username, role, userId, 24*60*60*100L);
         //String token = jwtUtil.createJwt(username, role, 60*60*1L);
 
 

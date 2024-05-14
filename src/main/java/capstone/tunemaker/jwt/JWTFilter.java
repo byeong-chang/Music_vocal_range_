@@ -1,6 +1,6 @@
 package capstone.tunemaker.jwt;
 
-import capstone.tunemaker.dto.CustomMemberDetails;
+import capstone.tunemaker.dto.create.CustomMemberDetails;
 import capstone.tunemaker.entity.Member;
 import capstone.tunemaker.service.TokenBlacklistService;
 import jakarta.servlet.FilterChain;
@@ -45,7 +45,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
         // 2. Bearer 부분 제거 후, 순수 토큰만 흭득(파싱)
         String token = authorization.split(" ")[1];
-        log.info("token = {}", token);
+        //log.info("token = {}", token);
 
         // 3. 토큰 소멸 시간 검증
         if (jwtUtil.isExpired(token) || tokenBlacklistService.isBlacklisted(token)) {
@@ -66,12 +66,16 @@ public class JWTFilter extends OncePerRequestFilter {
         // 토큰에서 username과 role 흭득
         String username = jwtUtil.getUsername(token);
         String role = jwtUtil.getRole(token);
+        Long userId = jwtUtil.getMemberId(token);
 
-        log.warn("username={}",username);
-        log.warn("role={}", role);
+
+        //log.warn("username={}",username);
+        //log.warn("role={}", role);
+        //log.warn("userId={}", userId);
 
         // member를 생성해서 값을 Set
         Member member = new Member();
+        member.setId(userId);
         member.setUsername(username);
         member.setPassword("temppassword");
         member.setRole(role);
