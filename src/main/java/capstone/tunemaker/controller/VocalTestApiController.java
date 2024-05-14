@@ -1,18 +1,14 @@
 package capstone.tunemaker.controller;
 
-import capstone.tunemaker.dto.CustomMemberDetails;
-import capstone.tunemaker.dto.VocalRequest;
-import capstone.tunemaker.dto.VocalResponse;
+import capstone.tunemaker.dto.create.CustomMemberDetails;
+import capstone.tunemaker.dto.vocal.VocalRequest;
+import capstone.tunemaker.dto.vocal.VocalResponse;
 import capstone.tunemaker.service.VocalTestService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequiredArgsConstructor

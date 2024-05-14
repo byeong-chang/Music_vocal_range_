@@ -1,4 +1,4 @@
-package capstone.tunemaker.dto;
+package capstone.tunemaker.dto.create;
 
 import capstone.tunemaker.entity.enums.Gender;
 import jakarta.validation.constraints.*;

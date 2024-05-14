@@ -15,6 +15,10 @@ public class MemberRepository {
         em.persist(member);
     }
 
+    public Member findById(Long memberId){
+        return em.find(Member.class, memberId);
+    }
+
     public Boolean existsByUsername(String username) {
         Long count = em.createQuery("select count(u) from Member u where u.username = :username", Long.class)
                 .setParameter("username", username)
@@ -27,7 +31,4 @@ public class MemberRepository {
                 .setParameter("username", username)
                 .getSingleResult();
     }
-
-
-
 }

@@ -1,7 +1,7 @@
 package capstone.tunemaker.service;
 
-import capstone.tunemaker.dto.VocalRequest;
-import capstone.tunemaker.dto.VocalResponse;
+import capstone.tunemaker.dto.vocal.VocalRequest;
+import capstone.tunemaker.dto.vocal.VocalResponse;
 import capstone.tunemaker.entity.Member;
 import capstone.tunemaker.entity.embeded.Pitch;
 import capstone.tunemaker.repository.MemberRepository;

@@ -1,9 +1,8 @@
 package capstone.tunemaker.service;
 
-import capstone.tunemaker.dto.YoutubeRequest;
-import capstone.tunemaker.dto.YoutubeResponse;
+import capstone.tunemaker.dto.youtube.YoutubeRequest;
+import capstone.tunemaker.dto.youtube.YoutubeResponse;
 import capstone.tunemaker.entity.Music;
-import capstone.tunemaker.entity.enums.Genre;
 import capstone.tunemaker.repository.MusicRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

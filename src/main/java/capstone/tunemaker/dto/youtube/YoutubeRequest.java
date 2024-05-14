@@ -1,4 +1,4 @@
-package capstone.tunemaker.dto;
+package capstone.tunemaker.dto.youtube;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;

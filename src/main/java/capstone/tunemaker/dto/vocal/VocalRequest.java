@@ -1,4 +1,4 @@
-package capstone.tunemaker.dto;
+package capstone.tunemaker.dto.vocal;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
