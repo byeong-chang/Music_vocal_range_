@@ -2,6 +2,7 @@ package capstone.tunemaker.repository;
 
 import capstone.tunemaker.entity.Member;
 import capstone.tunemaker.entity.Music;
+import capstone.tunemaker.entity.enums.Genre;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -28,9 +29,18 @@ public class MusicRepository {
         return results.isEmpty() ? null : results.get(0);
     }
 
+
     public List<Music> findByTitleContaining(String keyword){
         return em.createQuery("select m from Music as m where m.title like :keyword", Music.class)
                 .setParameter("keyword", "%" + keyword + "%")
+                .getResultList();
+    }
+
+
+    public List<Music> findTop10ByGenre(Genre genre) {
+        return em.createQuery("select m from Music as m where m.genre = :genre order by m.id", Music.class)
+                .setParameter("genre", genre)
+                .setMaxResults(10)
                 .getResultList();
     }
 

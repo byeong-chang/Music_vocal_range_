@@ -5,13 +5,16 @@ import capstone.tunemaker.dto.music.SearchKeyword;
 import capstone.tunemaker.dto.update.MemberInfoResponse;
 import capstone.tunemaker.dto.youtube.MusicResponse;
 import capstone.tunemaker.entity.Music;
+import capstone.tunemaker.entity.enums.Genre;
 import capstone.tunemaker.repository.MusicRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -55,5 +58,26 @@ public class MusicService {
             musicResponse.setId(music.getId());
             return musicResponse;
         }).collect(Collectors.toList());
+    }
+
+    public Map<Genre, List<MusicResponse>> getTop10MusicByGenre() {
+        Map<Genre, List<MusicResponse>> result = new HashMap<>();
+        for (Genre genre : Genre.values()) {
+            List<Music> musics = musicRepository.findTop10ByGenre(genre);
+            List<MusicResponse> musicResponses = musics.stream().map(music -> {
+                MusicResponse musicResponse = new MusicResponse();
+                musicResponse.setId(music.getId());
+                musicResponse.setTitle(music.getTitle());
+                musicResponse.setYoutubeUrl(music.getUrl());
+                musicResponse.setHighPitch(music.getHighPitch());
+                musicResponse.setDuration(music.getDuration());
+                musicResponse.setPlaylistTitle(music.getPlaylistTitle());
+                musicResponse.setUploader(music.getUploader());
+                musicResponse.setYoutubeUrlId(music.getUrlId());
+                return musicResponse;
+            }).collect(Collectors.toList());
+            result.put(genre, musicResponses);
+        }
+        return result;
     }
 }

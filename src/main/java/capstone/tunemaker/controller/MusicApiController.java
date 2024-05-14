@@ -3,6 +3,7 @@ package capstone.tunemaker.controller;
 import capstone.tunemaker.dto.music.MusicDetailsRequest;
 import capstone.tunemaker.dto.music.SearchKeyword;
 import capstone.tunemaker.dto.youtube.MusicResponse;
+import capstone.tunemaker.entity.enums.Genre;
 import capstone.tunemaker.service.MusicService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +12,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,5 +32,12 @@ public class MusicApiController {
     public List<MusicResponse> searchMusic(@RequestBody @Validated SearchKeyword keyword) {
         return musicService.keywordSearch(keyword);
     }
+
+    @GetMapping("/admin/home")
+    @PostMapping("/search")
+    public Map<Genre, List<MusicResponse>> loadHome() {
+        return musicService.getTop10MusicByGenre();
+    }
+
 
 }
