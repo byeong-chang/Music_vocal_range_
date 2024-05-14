@@ -1,7 +1,7 @@
 package capstone.tunemaker.controller;
 
 import capstone.tunemaker.dto.youtube.YoutubeRequest;
-import capstone.tunemaker.dto.youtube.YoutubeResponse;
+import capstone.tunemaker.dto.youtube.MusicResponse;
 import capstone.tunemaker.service.YoutubeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
@@ -16,7 +16,7 @@ public class YoutubeApiController {
     private final YoutubeService youtubeService;
 
     @PostMapping("/admin/youtube")
-    public YoutubeResponse youtubeUrlMusicInfo(@RequestBody @Validated YoutubeRequest youtubeRequest) throws ExecutionException, InterruptedException {
+    public MusicResponse youtubeUrlMusicInfo(@RequestBody @Validated YoutubeRequest youtubeRequest) throws ExecutionException, InterruptedException {
         return youtubeService.canUserSingThisSong(youtubeRequest);
     }
 

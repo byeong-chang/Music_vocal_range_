@@ -27,4 +27,11 @@ public class MusicRepository {
 
         return results.isEmpty() ? null : results.get(0);
     }
+
+    public List<Music> findByTitleContaining(String keyword){
+        return em.createQuery("select m from Music as m where m.title like :keyword", Music.class)
+                .setParameter("keyword", "%" + keyword + "%")
+                .getResultList();
+    }
+
 }

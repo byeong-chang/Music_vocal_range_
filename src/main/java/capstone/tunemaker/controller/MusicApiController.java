@@ -27,8 +27,8 @@ public class MusicApiController {
 
 
     @PostMapping("/search")
-    public void searchMusic(@RequestBody @Validated SearchKeyword keyword) {
-        log.error("{}", keyword);
+    public List<MusicResponse> searchMusic(@RequestBody @Validated SearchKeyword keyword) {
+        return musicService.keywordSearch(keyword);
     }
 
 }

@@ -34,7 +34,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
         // 1. Authorization 헤더 검증
         if (authorization == null || !authorization.startsWith("Bearer ")) {
-            log.warn("Token is NULL");
+            log.error("Token is NULL");
             filterChain.doFilter(request, response);
 
             // 조건이 해당되면 메소드 종료(필수)
@@ -50,7 +50,7 @@ public class JWTFilter extends OncePerRequestFilter {
         // 3. 토큰 소멸 시간 검증
         if (jwtUtil.isExpired(token) || tokenBlacklistService.isBlacklisted(token)) {
 
-            log.warn("Token is Expired");
+            log.error("Token is Expired");
             // 토큰이 만료되었으므로 401 Unauthorized 상태 코드와 함께 메시지 반환
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
@@ -94,7 +94,7 @@ public class JWTFilter extends OncePerRequestFilter {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         // Authentication 객체의 상태를 로그로 출력
-        log.warn("Authentication: " + auth);
+        log.info("Authentication: " + auth);
 
         // ########################################## //
 

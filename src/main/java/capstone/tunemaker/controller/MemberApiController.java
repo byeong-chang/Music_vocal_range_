@@ -36,10 +36,4 @@ public class MemberApiController {
         }
     }
 
-    @GetMapping("/logoutlist")
-    public void logoutList(){
-        tokenBlacklistService.printBlacklist();
-    }
-
-
 }

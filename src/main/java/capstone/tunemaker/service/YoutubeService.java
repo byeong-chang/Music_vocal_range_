@@ -1,7 +1,7 @@
 package capstone.tunemaker.service;
 
 import capstone.tunemaker.dto.youtube.YoutubeRequest;
-import capstone.tunemaker.dto.youtube.YoutubeResponse;
+import capstone.tunemaker.dto.youtube.MusicResponse;
 import capstone.tunemaker.entity.Music;
 import capstone.tunemaker.repository.MusicRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,48 +26,48 @@ public class YoutubeService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final MusicRepository musicRepository;
 
-    public YoutubeResponse canUserSingThisSong(YoutubeRequest youtubeRequest) throws ExecutionException, InterruptedException {
+    public MusicResponse canUserSingThisSong(YoutubeRequest youtubeRequest) throws ExecutionException, InterruptedException {
 
         String extractedUrlId = extractUrlId(youtubeRequest.getYoutubeUrl());
         Music music = musicRepository.findByUrlId(extractedUrlId);
 
         if (music != null) {
-            YoutubeResponse youtubeResponse = new YoutubeResponse();
-            youtubeResponse.setYoutubeUrlId(music.getUrlId());
-            return youtubeResponse;
+            MusicResponse musicResponse = new MusicResponse();
+            musicResponse.setYoutubeUrlId(music.getUrlId());
+            return musicResponse;
         } else {
             HttpEntity<YoutubeRequest> requestEntity = new HttpEntity<>(youtubeRequest);
-            CompletableFuture<YoutubeResponse> future = CompletableFuture.supplyAsync(() -> {
-                ResponseEntity<YoutubeResponse> responseEntity = restTemplate.exchange(
+            CompletableFuture<MusicResponse> future = CompletableFuture.supplyAsync(() -> {
+                ResponseEntity<MusicResponse> responseEntity = restTemplate.exchange(
                         "http://43.203.56.11:8000/youtube_extract",
                         HttpMethod.POST,
                         requestEntity,
-                        YoutubeResponse.class
+                        MusicResponse.class
                 );
                 return responseEntity.getBody();
             });
 
-            YoutubeResponse youtubeResponse = future.get();
+            MusicResponse musicResponse = future.get();
 
-            if (youtubeResponse != null) {
-                saveMusic(youtubeResponse);
+            if (musicResponse != null) {
+                saveMusic(musicResponse);
             }
-            return youtubeResponse;
+            return musicResponse;
         }
     }
 
     @Async
-    public void saveMusic(YoutubeResponse youtubeResponse) {
+    public void saveMusic(MusicResponse musicResponse) {
 
         Music newMusic = new Music();
 
-        newMusic.setTitle(youtubeResponse.getTitle());
-        newMusic.setUrl(youtubeResponse.getYoutubeUrl());
-        newMusic.setHighPitch(youtubeResponse.getHighPitch());
-        newMusic.setDuration(youtubeResponse.getDuration());
-        newMusic.setPlaylistTitle(youtubeResponse.getPlaylistTitle());
-        newMusic.setUploader(youtubeResponse.getUploader());
-        newMusic.setUrlId(youtubeResponse.getYoutubeUrlId());
+        newMusic.setTitle(musicResponse.getTitle());
+        newMusic.setUrl(musicResponse.getYoutubeUrl());
+        newMusic.setHighPitch(musicResponse.getHighPitch());
+        newMusic.setDuration(musicResponse.getDuration());
+        newMusic.setPlaylistTitle(musicResponse.getPlaylistTitle());
+        newMusic.setUploader(musicResponse.getUploader());
+        newMusic.setUrlId(musicResponse.getYoutubeUrlId());
 
         musicRepository.save(newMusic);
     }

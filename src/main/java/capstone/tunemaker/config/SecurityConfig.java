@@ -55,34 +55,6 @@ public class SecurityConfig {
         return configuration.getAuthenticationManager();
     }
 
-    /**
-     * DelegatingSecurityContextAsyncTaskExecutor 빈 등록
-
-    @Bean
-    public DelegatingSecurityContextAsyncTaskExecutor taskExecutor(ThreadPoolTaskExecutor delegate) {
-        return new DelegatingSecurityContextAsyncTaskExecutor(delegate);
-    }
-
-    @Bean
-    public ThreadPoolTaskExecutor threadPoolTaskExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(10);
-        executor.setMaxPoolSize(50);
-        executor.setQueueCapacity(100);
-        executor.setThreadNamePrefix("Async-");
-        executor.initialize();
-        return executor;
-    }
-     */
-
-    /**
-     * HTTP 보안 설정
-     *  - CSRF 보호 비활성화
-     *  - Form Login 방식 비활성화
-     *  - httpBasic 인가방식 비활성화
-     *  - {“/login”, “/”, “join”} 경로는 모든 사용자에게 허용되도록 설정
-     *  - {“admin”} 경로는 ADMIN 역할을 가진 사용자만 접근
-     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
 
@@ -106,7 +78,7 @@ public class SecurityConfig {
                 .formLogin((auth) -> auth.disable())
                 .httpBasic((auth) -> auth.disable())
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/login", "/", "join", "/logoutlist").permitAll()
+                        .requestMatchers("/login", "/", "join", "/error").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
@@ -115,7 +87,6 @@ public class SecurityConfig {
                 )
                 .addFilterBefore(new JWTFilter(jwtUtil, tokenBlacklistService), LoginFilter.class)
                 .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil), UsernamePasswordAuthenticationFilter.class);
-                //SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
         return http.build();
     }
 
