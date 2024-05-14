@@ -60,7 +60,6 @@ public class VocalTestService {
             }
         }
 
-
         if (maxEntry != null) {
             Member member = memberRepository.findByUsername(username);
             if (member != null) {

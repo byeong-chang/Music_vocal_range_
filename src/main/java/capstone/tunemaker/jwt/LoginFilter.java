@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -25,6 +26,7 @@ import java.util.Map;
  *    (기본적으로 UsernamePasswordAuthenticationFilter는 “/login” 경로에 대한 요청을 처리하도록 설정되어있음)
  */
 @RequiredArgsConstructor
+@Slf4j
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
@@ -71,7 +73,12 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String role = auth.getAuthority();
 
         // JWT 생성 부분
-        String token = jwtUtil.createJwt(username, role, 60*60*10L);
+        String token = jwtUtil.createJwt(username, role, 24*60*60*100L);
+        //String token = jwtUtil.createJwt(username, role, 60*60*1L);
+
+
+        // response Header에 JWT 토큰 저장
+        response.setHeader("Authorization", "Bearer " + token);
 
         // JSON 형식으로 JWT 토큰 반환
         response.setContentType("application/json");

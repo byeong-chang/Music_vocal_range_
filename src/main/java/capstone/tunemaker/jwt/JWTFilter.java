@@ -2,6 +2,7 @@ package capstone.tunemaker.jwt;
 
 import capstone.tunemaker.dto.CustomMemberDetails;
 import capstone.tunemaker.entity.Member;
+import capstone.tunemaker.service.TokenBlacklistService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +24,7 @@ import java.io.IOException;
 public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -43,11 +45,19 @@ public class JWTFilter extends OncePerRequestFilter {
 
         // 2. Bearer 부분 제거 후, 순수 토큰만 흭득(파싱)
         String token = authorization.split(" ")[1];
+        log.info("token = {}", token);
 
         // 3. 토큰 소멸 시간 검증
-        if (jwtUtil.isExpired(token)) {
+        if (jwtUtil.isExpired(token) || tokenBlacklistService.isBlacklisted(token)) {
+
             log.warn("Token is Expired");
-            filterChain.doFilter(request, response);
+            // 토큰이 만료되었으므로 401 Unauthorized 상태 코드와 함께 메시지 반환
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(
+                    "{\"message\": \"Token is Unavailable. Please log in again.\"}"
+            );
 
             // 조건이 해당되면 메소드 종료(필수)
             return ;

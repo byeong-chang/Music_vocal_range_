@@ -1,6 +1,7 @@
 package capstone.tunemaker.jwt;
 
 import io.jsonwebtoken.Jwts;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -10,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
+@Slf4j
 public class JWTUtil {
 
     private SecretKey secretKey; // Token 생성 시에 전자 서명 목적, 클라이언트로부터 Token 받았을 때 검증하기 위한 목적
@@ -38,6 +40,7 @@ public class JWTUtil {
     }
 
     public String createJwt(String username, String role, Long expireMs){
+        log.info("expire time = {}", new Date(System.currentTimeMillis() + expireMs));
         return Jwts.builder()
                 .claim("username", username)
                 .claim("role", role)

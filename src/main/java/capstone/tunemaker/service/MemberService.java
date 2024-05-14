@@ -5,6 +5,7 @@ import capstone.tunemaker.dto.CustomMemberDetails;
 import capstone.tunemaker.entity.Member;
 import capstone.tunemaker.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class MemberService implements UserDetailsService {
 
     private final MemberRepository memberRepository;
@@ -45,6 +47,7 @@ public class MemberService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         // 클라이언트로 부터 받은 username을 기반으로 DB에서 가져오는 부분
         Member userData = memberRepository.findByUsername(username);
+        log.warn("userData = {}", userData.getUsername());
 
         // 값의 검증 부분(만약 클라이언트로부터 받은 username이 DB에 존재한다면, UserDetails에 해당 userEntity를 반환)
         if (userData != null) {

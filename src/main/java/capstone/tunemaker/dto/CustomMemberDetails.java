@@ -27,7 +27,6 @@ public class CustomMemberDetails implements UserDetails {
         return collection;
     }
 
-
     @Override
     public String getPassword() {
         return member.getPassword();

@@ -3,6 +3,7 @@ package capstone.tunemaker.config;
 import capstone.tunemaker.jwt.JWTFilter;
 import capstone.tunemaker.jwt.JWTUtil;
 import capstone.tunemaker.jwt.LoginFilter;
+import capstone.tunemaker.service.TokenBlacklistService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -33,7 +34,7 @@ import java.util.Collections;
 public class SecurityConfig {
 
     private final AuthenticationConfiguration authenticationConfiguration;
-
+    private final TokenBlacklistService tokenBlacklistService;
     private final JWTUtil jwtUtil;
 
 
@@ -56,7 +57,7 @@ public class SecurityConfig {
 
     /**
      * DelegatingSecurityContextAsyncTaskExecutor 빈 등록
-     */
+
     @Bean
     public DelegatingSecurityContextAsyncTaskExecutor taskExecutor(ThreadPoolTaskExecutor delegate) {
         return new DelegatingSecurityContextAsyncTaskExecutor(delegate);
@@ -72,6 +73,7 @@ public class SecurityConfig {
         executor.initialize();
         return executor;
     }
+     */
 
     /**
      * HTTP 보안 설정
@@ -104,16 +106,16 @@ public class SecurityConfig {
                 .formLogin((auth) -> auth.disable())
                 .httpBasic((auth) -> auth.disable())
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/login", "/", "join").permitAll()
-                        .requestMatchers("/admin").hasRole("ADMIN")
+                        .requestMatchers("/login", "/", "join", "/logoutlist").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement((session) -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class)
+                .addFilterBefore(new JWTFilter(jwtUtil, tokenBlacklistService), LoginFilter.class)
                 .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil), UsernamePasswordAuthenticationFilter.class);
-                SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
+                //SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
         return http.build();
     }
 
