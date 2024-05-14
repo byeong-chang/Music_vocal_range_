@@ -18,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+
 @RequiredArgsConstructor
 @Transactional
 @Slf4j
@@ -44,42 +45,34 @@ public class VocalTestService {
         VocalResponse vocalResponse = responseEntity.getBody();
 
         // 테스트 결과를 저장소에 추가
-        accuracyMap.put(request.getTarget(), vocalResponse.getAccuracy());
+        String target = request.getTarget();
+        Double accuracy = vocalResponse.getAccuracy();
+
+        if (!accuracyMap.containsKey(target) || accuracyMap.get(target) < accuracy) {
+            accuracyMap.put(target, accuracy);
+        }
 
         return vocalResponse;
     }
 
-    @Async
-    public void saveBestResult(String username) {
+    public void saveBestResult(Long memberId) {
 
-        Map.Entry<String, Double> maxEntry = null;
+        Member findMember = memberRepository.findById(memberId);
+        Pitch pitch = findMember.getPitch();
 
         for (Map.Entry<String, Double> entry : accuracyMap.entrySet()) {
-            if (maxEntry == null || entry.getValue().compareTo(maxEntry.getValue()) >= 0) {
-                maxEntry = entry;
+
+            String target = entry.getKey();
+            Double accuracy = entry.getValue();
+
+            try {
+                Field field = pitch.getClass().getDeclaredField(target);
+                field.setAccessible(true);
+                field.set(pitch, accuracy.floatValue());
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                e.printStackTrace();
             }
         }
-
-        if (maxEntry != null) {
-            Member member = memberRepository.findByUsername(username);
-            if (member != null) {
-                Pitch pitch = member.getPitch();
-                if (pitch == null) {
-                    pitch = new Pitch();
-                }
-                try {
-                    Field field = Pitch.class.getDeclaredField(maxEntry.getKey());
-                    field.setAccessible(true);
-                    field.set(pitch, maxEntry.getValue().floatValue());
-                } catch (NoSuchFieldException | IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-                member.setPitch(pitch);
-                memberRepository.save(member);
-            }
-        }
-
-        // 저장소 초기화
-        accuracyMap.clear();
+        findMember.setPitch(pitch);
     }
 }

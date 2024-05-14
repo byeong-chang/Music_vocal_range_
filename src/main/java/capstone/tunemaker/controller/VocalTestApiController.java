@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/admin/test")
+@RequestMapping("/admin/vocal")
 @Slf4j
 public class VocalTestApiController {
 
@@ -25,12 +25,8 @@ public class VocalTestApiController {
 
     @GetMapping("/end")
     public void saveVoice(@AuthenticationPrincipal CustomMemberDetails memberDetails){
-        vocalTestService.saveBestResult(memberDetails.getUsername());
+        vocalTestService.saveBestResult(memberDetails.getMemberId());
     }
 
-    @GetMapping("/user")
-    public void testMethod(@AuthenticationPrincipal CustomMemberDetails memberDetails){
-
-    }
 
 }

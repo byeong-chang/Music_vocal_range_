@@ -15,7 +15,7 @@ public class YoutubeApiController {
 
     private final YoutubeService youtubeService;
 
-    @PostMapping("/admin")
+    @PostMapping("/admin/youtube")
     public YoutubeResponse youtubeUrlMusicInfo(@RequestBody @Validated YoutubeRequest youtubeRequest) throws ExecutionException, InterruptedException {
         return youtubeService.canUserSingThisSong(youtubeRequest);
     }
