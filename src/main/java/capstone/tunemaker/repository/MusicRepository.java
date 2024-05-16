@@ -37,9 +37,16 @@ public class MusicRepository {
     }
 
 
-    public List<Music> findTop10ByGenre(Genre genre) {
+    public List<Music> find10ByGenre(Genre genre) {
         return em.createQuery("select m from Music as m where m.genre = :genre order by m.id", Music.class)
                 .setParameter("genre", genre)
+                .setMaxResults(10)
+                .getResultList();
+    }
+
+    public List<Music> find10ByPitch(Double highPitch) {
+        return em.createQuery("select m from Music as m where m.highPitch <= :highPitch", Music.class)
+                .setParameter("highPitch", highPitch)
                 .setMaxResults(10)
                 .getResultList();
     }

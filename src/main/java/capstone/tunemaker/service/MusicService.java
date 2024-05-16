@@ -4,17 +4,26 @@ import capstone.tunemaker.dto.music.MusicDetailsRequest;
 import capstone.tunemaker.dto.music.SearchKeyword;
 import capstone.tunemaker.dto.update.MemberInfoResponse;
 import capstone.tunemaker.dto.youtube.MusicResponse;
+import capstone.tunemaker.entity.Member;
 import capstone.tunemaker.entity.Music;
+import capstone.tunemaker.entity.Playlist;
+import capstone.tunemaker.entity.PlaylistAndMusic;
 import capstone.tunemaker.entity.enums.Genre;
+import capstone.tunemaker.repository.MemberRepository;
 import capstone.tunemaker.repository.MusicRepository;
+import capstone.tunemaker.repository.PlaylistAndMusicRepository;
+import capstone.tunemaker.repository.PlaylistRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,7 +32,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MusicService {
 
+    private final MemberRepository memberRepository;
     private final MusicRepository musicRepository;
+    private final PlaylistRepository playlistRepository;
+    private final PlaylistAndMusicRepository playlistAndMusicRepository;
+
 
     // 노래 "하나" 터치했을 때, 노래의 자세한 정보
     public MusicResponse searchMusicDetails(MusicDetailsRequest request) {
@@ -31,6 +44,7 @@ public class MusicService {
         Music findMusic = musicRepository.findByUrlId(request.getYoutubeUrlId());
 
         MusicResponse musicResponse = new MusicResponse();
+
         musicResponse.setTitle(findMusic.getTitle());
         musicResponse.setUploader(findMusic.getUploader());
         musicResponse.setHighPitch(findMusic.getHighPitch());
@@ -42,6 +56,7 @@ public class MusicService {
 
         return musicResponse;
     }
+
 
     // 키워드가 포함되어 있는 노래들을 리스트 형식으로 반환
     public List<MusicResponse> keywordSearch(SearchKeyword keyword) {
@@ -60,24 +75,88 @@ public class MusicService {
         }).collect(Collectors.toList());
     }
 
-    public Map<Genre, List<MusicResponse>> getTop10MusicByGenre() {
-        Map<Genre, List<MusicResponse>> result = new HashMap<>();
-        for (Genre genre : Genre.values()) {
-            List<Music> musics = musicRepository.findTop10ByGenre(genre);
-            List<MusicResponse> musicResponses = musics.stream().map(music -> {
-                MusicResponse musicResponse = new MusicResponse();
-                musicResponse.setId(music.getId());
-                musicResponse.setTitle(music.getTitle());
-                musicResponse.setYoutubeUrl(music.getUrl());
-                musicResponse.setHighPitch(music.getHighPitch());
-                musicResponse.setDuration(music.getDuration());
-                musicResponse.setPlaylistTitle(music.getPlaylistTitle());
-                musicResponse.setUploader(music.getUploader());
-                musicResponse.setYoutubeUrlId(music.getUrlId());
-                return musicResponse;
-            }).collect(Collectors.toList());
-            result.put(genre, musicResponses);
+
+    // 홈 버튼을 눌렀을 때 추천되는 노래 10곡씩 추출
+    public Map<String, List<MusicResponse>> get10MusicByGenreAndPitch(Long memberId) {
+
+        Map<String, List<MusicResponse>> result = new ConcurrentHashMap<>();
+
+        Member findMember = memberRepository.findById(memberId);
+        Double highPitch = findMember.getHighPitch();
+
+        if (highPitch != null) {
+            // 사용자 음계보다 낮은 음악 반환
+            List<Music> musics = musicRepository.find10ByPitch(highPitch);
+            List<MusicResponse> musicResponses = convertToMusicResponse(musics);
+            result.put("Pitch", musicResponses);
         }
+
+        // 장르별 음악 반환
+        for (Genre genre : Genre.values()) {
+            List<Music> musics = musicRepository.find10ByGenre(genre);
+            List<MusicResponse> musicResponses = convertToMusicResponse(musics);
+            result.put(genre.name(), musicResponses);
+        }
+
         return result;
     }
+
+    private List<MusicResponse> convertToMusicResponse(List<Music> musics) {
+        return musics.stream().map(music -> {
+            MusicResponse musicResponse = new MusicResponse();
+            musicResponse.setId(music.getId());
+            musicResponse.setTitle(music.getTitle());
+            musicResponse.setYoutubeUrl(music.getUrl());
+            musicResponse.setHighPitch(music.getHighPitch());
+            musicResponse.setDuration(music.getDuration());
+            musicResponse.setPlaylistTitle(music.getPlaylistTitle());
+            musicResponse.setUploader(music.getUploader());
+            musicResponse.setYoutubeUrlId(music.getUrlId());
+            return musicResponse;
+        }).collect(Collectors.toList());
+    }
+
+
+    // 플레이리스트에 곡 추가
+    public void addMusicToPlaylist(Long playlistId, String musicUrlId) {
+        Playlist playlist = playlistRepository.findById(playlistId);
+        if (playlist == null) {
+            throw new IllegalArgumentException("Invalid playlist ID");
+        }
+
+        Music music = musicRepository.findByUrlId(musicUrlId);
+        if (music == null) {
+            throw new IllegalArgumentException("Invalid music URL ID");
+        }
+
+        PlaylistAndMusic playlistAndMusic = new PlaylistAndMusic();
+        playlistAndMusic.setPlaylist(playlist);
+        playlistAndMusic.setMusic(music);
+
+        playlistAndMusicRepository.save(playlistAndMusic);
+    }
+
+
+    // 플레이리스트에 곡 제거
+    public void removeMusicFromPlaylist(Long playlistId, String musicUrlId) {
+        Playlist playlist = playlistRepository.findById(playlistId);
+        if (playlist == null) {
+            throw new IllegalArgumentException("Invalid playlist ID");
+        }
+
+        Music music = musicRepository.findByUrlId(musicUrlId);
+        if (music == null) {
+            throw new IllegalArgumentException("Invalid music URL ID");
+        }
+
+        PlaylistAndMusic playlistAndMusic = playlistAndMusicRepository.findByPlaylistAndMusic(playlist, music);
+        if (playlistAndMusic == null) {
+            throw new IllegalArgumentException("Music not found in the playlist");
+        }
+
+        playlistAndMusicRepository.delete(playlistAndMusic);
+    }
+
+
+
 }
