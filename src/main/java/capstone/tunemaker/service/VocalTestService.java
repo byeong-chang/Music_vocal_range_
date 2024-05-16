@@ -36,16 +36,17 @@ public class VocalTestService {
         HttpEntity<VocalRequest> requestEntity = new HttpEntity<>(request);
 
         ResponseEntity<VocalResponse> responseEntity = restTemplate.exchange(
-                "http://43.203.56.11:8000/vocal_test",
+                "http://52.79.116.144:8000/vocal_test",
                 HttpMethod.POST,
                 requestEntity,
                 VocalResponse.class
         );
 
         VocalResponse vocalResponse = responseEntity.getBody();
+//        log.info("accuracy = {}", vocalResponse.getAccuracy());
 
-        // 테스트 결과를 저장소에 추가
-        String target = request.getTarget();
+        // 모듈로부터 얻은 데이터 저장소에 추가
+        String target = vocalResponse.getTarget();
         Double accuracy = vocalResponse.getAccuracy();
 
         if (!accuracyMap.containsKey(target) || accuracyMap.get(target) < accuracy) {

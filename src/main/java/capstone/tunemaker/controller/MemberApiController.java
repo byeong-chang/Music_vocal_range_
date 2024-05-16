@@ -1,6 +1,9 @@
 package capstone.tunemaker.controller;
 
 import capstone.tunemaker.dto.create.CreateMemberRequest;
+import capstone.tunemaker.dto.music.SearchKeyword;
+import capstone.tunemaker.dto.youtube.MusicResponse;
+import capstone.tunemaker.entity.enums.Genre;
 import capstone.tunemaker.service.MemberService;
 import capstone.tunemaker.service.TokenBlacklistService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,6 +14,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 public class MemberApiController {
@@ -19,12 +25,14 @@ public class MemberApiController {
     private final MemberService memberService;
 
     @PostMapping("/join")
-    public void joinMember(@RequestBody @Validated CreateMemberRequest request){
+    public String joinMember(@RequestBody @Validated CreateMemberRequest request){
 
         if (!request.getPassword1().equals(request.getPassword2())) {
             throw new IllegalArgumentException("Passwords do not match");
         }
         memberService.join(request);
+
+        return "{\"message\":\"ok\"}";
     }
 
     @GetMapping("/admin/logout")

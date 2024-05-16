@@ -30,6 +30,7 @@ public class MemberService implements UserDetailsService {
 
         Member newMember = createNewMember(request);
         memberRepository.save(newMember);
+
     }
 
     private Member createNewMember(CreateMemberRequest request) {

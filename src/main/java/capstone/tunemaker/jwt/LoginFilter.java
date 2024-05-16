@@ -82,11 +82,11 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         // response Header에 JWT 토큰 저장
         response.setHeader("Authorization", "Bearer " + token);
 
-        // JSON 형식으로 JWT 토큰 반환
+        // JSON 형식으로 JWT 토큰 및 memberId 반환
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(
-                "{\"Authorization\": \"Bearer " + token + "\"}"
+                "{ \"Authorization\": \"Bearer " + token + "\", \"memberId\": " + userId + " }"
         );
     }
 

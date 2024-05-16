@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -31,11 +32,11 @@ public class Music {
 
     private Double highPitch;
 
-    @OneToMany(mappedBy = "music")
-    private List<Playlist> playlist;
-
     @Enumerated(EnumType.STRING)
     private Genre genre;
+
+    @OneToMany(mappedBy = "music", cascade = CascadeType.REMOVE)
+    private List<PlaylistAndMusic> playlist = new ArrayList<>();
 
 }
 

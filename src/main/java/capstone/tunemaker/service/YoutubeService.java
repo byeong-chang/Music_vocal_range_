@@ -39,7 +39,7 @@ public class YoutubeService {
             HttpEntity<YoutubeRequest> requestEntity = new HttpEntity<>(youtubeRequest);
             CompletableFuture<MusicResponse> future = CompletableFuture.supplyAsync(() -> {
                 ResponseEntity<MusicResponse> responseEntity = restTemplate.exchange(
-                        "http://43.203.56.11:8000/youtube_extract",
+                        "http://52.79.116.144:8000/youtube_extract",
                         HttpMethod.POST,
                         requestEntity,
                         MusicResponse.class

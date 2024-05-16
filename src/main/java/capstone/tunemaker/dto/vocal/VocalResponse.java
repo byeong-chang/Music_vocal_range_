@@ -8,4 +8,5 @@ import lombok.Data;
 public class VocalResponse {
     private String target;
     private Double accuracy;
+    private Boolean pass;
 }

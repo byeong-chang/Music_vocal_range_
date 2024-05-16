@@ -5,6 +5,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter @Setter
 public class Playlist {
@@ -14,13 +17,14 @@ public class Playlist {
     @Column(name = "playlist_id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "music_id")
-    private Music music;
+    private String title;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
+
+    @OneToMany(mappedBy = "playlist", cascade = CascadeType.REMOVE)
+    private List<PlaylistAndMusic> playlistAndMusicList = new ArrayList<>();
 
 }
 

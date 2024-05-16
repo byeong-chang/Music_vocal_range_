@@ -24,7 +24,7 @@ public class MemberSettingApiController {
         return myPageService.retrieve(memberDetails.getMemberId());
     }
 
-    @PostMapping("mypage/updatebasic")
+    @PostMapping("/mypage/updatebasic")
     public void updateBasic(@AuthenticationPrincipal CustomMemberDetails memberDetails,
                                           @RequestBody @Validated UpdateMemberRequest request){
         myPageService.updateBasicInfo(memberDetails.getMemberId(), request);

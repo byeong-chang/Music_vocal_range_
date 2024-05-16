@@ -6,6 +6,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter @Setter
 public class Member {
@@ -20,13 +23,16 @@ public class Member {
     private String password;
 
     @Column(name = "high_pitch")
-    private String highPitch;
+    private Double highPitch;
 
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
     private String role;
 
+    @Embedded
     private Pitch pitch;
 
+    @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE)
+    private List<Playlist> playlistList = new ArrayList<>();
 }

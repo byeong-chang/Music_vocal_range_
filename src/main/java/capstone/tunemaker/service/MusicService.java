@@ -34,8 +34,6 @@ public class MusicService {
 
     private final MemberRepository memberRepository;
     private final MusicRepository musicRepository;
-    private final PlaylistRepository playlistRepository;
-    private final PlaylistAndMusicRepository playlistAndMusicRepository;
 
 
     // 노래 "하나" 터치했을 때, 노래의 자세한 정보
@@ -115,48 +113,4 @@ public class MusicService {
             return musicResponse;
         }).collect(Collectors.toList());
     }
-
-
-    // 플레이리스트에 곡 추가
-    public void addMusicToPlaylist(Long playlistId, String musicUrlId) {
-        Playlist playlist = playlistRepository.findById(playlistId);
-        if (playlist == null) {
-            throw new IllegalArgumentException("Invalid playlist ID");
-        }
-
-        Music music = musicRepository.findByUrlId(musicUrlId);
-        if (music == null) {
-            throw new IllegalArgumentException("Invalid music URL ID");
-        }
-
-        PlaylistAndMusic playlistAndMusic = new PlaylistAndMusic();
-        playlistAndMusic.setPlaylist(playlist);
-        playlistAndMusic.setMusic(music);
-
-        playlistAndMusicRepository.save(playlistAndMusic);
-    }
-
-
-    // 플레이리스트에 곡 제거
-    public void removeMusicFromPlaylist(Long playlistId, String musicUrlId) {
-        Playlist playlist = playlistRepository.findById(playlistId);
-        if (playlist == null) {
-            throw new IllegalArgumentException("Invalid playlist ID");
-        }
-
-        Music music = musicRepository.findByUrlId(musicUrlId);
-        if (music == null) {
-            throw new IllegalArgumentException("Invalid music URL ID");
-        }
-
-        PlaylistAndMusic playlistAndMusic = playlistAndMusicRepository.findByPlaylistAndMusic(playlist, music);
-        if (playlistAndMusic == null) {
-            throw new IllegalArgumentException("Music not found in the playlist");
-        }
-
-        playlistAndMusicRepository.delete(playlistAndMusic);
-    }
-
-
-
 }
