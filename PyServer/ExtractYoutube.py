@@ -18,9 +18,10 @@ import scipy
 import boto3
 import aubio
 import glob
-import time
+import time  
 import os 
 import re
+
 
 
 class ExtractYoutube():
@@ -43,19 +44,21 @@ class ExtractYoutube():
                     region_name="ap-northeast-2"
                     )
         
-        note_list = ['C1', 'C#1', 'D1', 'D#1', 'E1', 'F1', 'F#1', 'G1', 'G#1', 'A1', 'A#1', 'B1',
+        self.note_list = ['C1', 'C#1', 'D1', 'D#1', 'E1', 'F1', 'F#1', 'G1', 'G#1', 'A1', 'A#1', 'B1',
              'C2', 'C#2', 'D2', 'D#2', 'E2', 'F2', 'F#2', 'G2', 'G#2', 'A2', 'A#2', 'B2',
              'C3', 'C#3', 'D3', 'D#3', 'E3', 'F3', 'F#3', 'G3', 'G#3', 'A3', 'A#3', 'B3',
              'C4', 'C#4', 'D4', 'D#4', 'E4', 'F4', 'F#4', 'G4', 'G#4', 'A4', 'A#4', 'B4',
              'C5', 'C#5', 'D5', 'D#5', 'E5', 'F5', 'F#5', 'G5']
 
-        scale_list = [[32.7, 34.65], [34.65, 36.71], [36.71, 38.89], [38.89, 41.20], [41.20, 43.65], [43.65, 46.25], [46.25, 49.00], [49.00, 51.91], [51.91, 55.00], [55.00, 58.27], [58.27, 61.74], [61.74, 65.41],
-                    [65.41, 69.30], [69.30, 73.42], [73.42, 77.78], [77.78, 82.41], [82.41, 87.31], [87.31, 92.50], [92.50, 98.00], [98.00, 103.83], [103.83, 110.00], [110.00, 116.54], [116.54, 123.47], [123.47, 130.81],
-                    [130.81, 138.59], [138.59, 146.83], [146.83, 155.56], [155.56, 164.81], [164.81, 174.61], [174.61, 185.00], [185.00, 196.00], [196.00, 207.65], [207.65, 220.00], [220.00, 233.08], [233.08, 246.94], [246.94, 261.63],
-                    [261.63, 277.18], [277.18, 293.66], [293.66, 311.13], [311.13, 329.63], [329.63, 349.23], [349.23, 369.99], [369.99, 392.00], [392.00, 415.30], [415.30, 440.00], [440.00, 466.16], [466.16, 493.88], [493.88, 523.25],
-                    [523.25, 554.37], [554.37, 587.33], [587.33, 622.25], [622.25, 659.26], [659.26, 698.46], [698.46, 739.99], [739.99, 783.99], [783.99, 830.61], [830.61, 880.00], [880.00, 932.33], [932.33, 987.77], [987.77, 1046.50]]
+        self.scale_list = [[32.7, 34.65], [34.65, 36.71], [36.71, 38.89], [38.89, 41.20], [41.20, 43.65], [43.65, 46.25], [46.25, 49.00], [49.00, 51.91], [51.91, 55.00], 
+                    [55.00, 58.27], [58.27, 61.74], [61.74, 65.41],[65.41, 69.30], [69.30, 73.42], [73.42, 77.78], [77.78, 82.41], [82.41, 87.31], [87.31, 92.50],
+                    [92.50, 98.00], [98.00, 103.83], [103.83, 110.00], [110.00, 116.54], [116.54, 123.47], [123.47, 130.81],[130.81, 138.59], [138.59, 146.83], [146.83, 155.56],
+                    [155.56, 164.81], [164.81, 174.61], [174.61, 185.00], [185.00, 196.00], [196.00, 207.65], [207.65, 220.00], [220.00, 233.08], [233.08, 246.94], [246.94, 261.63],
+                    [261.63, 277.18], [277.18, 293.66], [293.66, 311.13], [311.13, 329.63], [329.63, 349.23], [349.23, 369.99], [369.99, 392.00], [392.00, 415.30], [415.30, 440.00], 
+                    [440.00, 466.16], [466.16, 493.88], [493.88, 523.25],[523.25, 554.37], [554.37, 587.33], [587.33, 622.25], [622.25, 659.26], [659.26, 698.46], [698.46, 739.99], 
+                    [739.99, 783.99], [783.99, 830.61], [830.61, 880.00], [880.00, 932.33], [932.33, 987.77], [987.77, 1046.50]]
 
-        self.note_freq_dict = dict(zip(note_list, scale_list))
+        self.note_freq_dict = dict(zip(self.note_list, self.scale_list))
         os.makedirs("./user", exist_ok=True)
 
     def download_youtube_video_as_mp3(self, video_url, video_title,output_path):
@@ -68,11 +71,16 @@ class ExtractYoutube():
                     'preferredquality': '192',
                 }],
                 'ignoreerrors': True,
-                'outtmpl': f'./music/{output_path}/{video_title}.%(ext)s'
+                'outtmpl': f'./music/{output_path}/{video_title}.%(ext)s',
+                'retries': 10,
+                'fragment-retries': 'infinite',
+                'skip-unavailable-fragments': True,
+                'quiet': True  # 출력 억제
             }
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([video_url])
+
             return True
         except yt_dlp.utils.DownloadError as e:
             return False
@@ -142,7 +150,8 @@ class ExtractYoutube():
         if os.path.exists(f"{playlist_name}.csv"):
             self.playlist_datas = pd.read_csv(f"{playlist_name}.csv")
         else:
-            self.playlist_datas = pd.DataFrame(columns=["title","link","id","playlist_title","duration","uploader","youtube_downloaded","spleeter","remove_space_wav_to_s3","vocal_range","mfcc_origin","mfcc_after_transform"])
+            self.playlist_datas = pd.DataFrame(columns=["title","link","id","playlist_title","duration","uploader",
+                                                        "youtube_downloaded","spleeter","remove_space_wav_to_s3","vocal_range","mfcc_origin","mfcc_after_transform"])
         
         ydl_opts = {
             'quiet': True,  # 로그 출력 억제
@@ -163,7 +172,6 @@ class ExtractYoutube():
         except Exception as e:
             print(e, "inappropriate youtube_link")
             return f"{e} occured in downloading youtube"
-
 
     def calSpleeter(self,output_path,file_path, quality = str(2)):
         output_path = output_path[:-4]
@@ -197,8 +205,8 @@ class ExtractYoutube():
         # 결과 반환
         return avg_mfcc
 
-    def extract_highest_pitch(self,file_path, time_interval=0.1, volume_thresh=0.001): # time_interval[출력 시간 간격], volume_thresh[볼륨 임계값]
-
+    def extract_highest_pitch(self,file_path, time_interval=0.1, volume_thresh=0.001): 
+        # time_interval[출력 시간 간격], volume_thresh[볼륨 임계값]
 
         # 파일의 샘플링 레이트 확인
         with sf.SoundFile(file_path) as f:
@@ -252,8 +260,6 @@ class ExtractYoutube():
                             one_block['data'].append(pitch)
                             one_block['end'] = total_frames/src.samplerate
 
-                    #print(f"[{total_frames/src.samplerate:.2f}s] {current_pitch.nameWithOctave} [{pitch:.2f} Hz]")
-
             total_frames += read      # 현재 위치 업데이트
             if read < src.hop_size:   # 버퍼 사이즈보다 재생한게 작으면 종료 = 더 이상 재생할 거 없는 경우 의미
                 if one_block['end'] - one_block['start'] > threshold_time:
@@ -261,11 +267,6 @@ class ExtractYoutube():
                                 filtered_pitches['time'].append(one_block['end'])
                 break
 
-        # 최고 음역대 출력
-        #print(f"Highest pitch in the range [80Hz, 830Hz]: {max_pitch_note} [{max_pitch:.2f} Hz]")
-
-        #print(filtered_pitches)
-        print("MAX PITCH : ", max(filtered_pitches['value']))
         return(max(filtered_pitches['value']))
     
     def remove_extraHz(self, file_path,output_path,highest_pitch):
@@ -297,14 +298,20 @@ class ExtractYoutube():
         # 저장
         wavfile.write(output_path, sr, y_out_int)
 
-    def extract_user_frequency(self,file_path, time_interval=0.1, volume_thresh=0.01): # time_interval[출력 시간 간격], volume_thresh[볼륨 임계값]
+    def extract_user_frequency(self,file_path, time_interval=0.1, volume_thresh=0.01): 
+        
+        # time_interval[출력 시간 간격], volume_thresh[볼륨 임계값]
+        with sf.SoundFile(file_path) as f:
+            samplerate = f.samplerate
 
-        pDetection = aubio.pitch("default", 2048, 2048//2, 44100)       # aubio.pitch : 주파수(음높이)감지 객체 생성 코드
-                                                                        # ("default", 2048, 2048//2, 44100)은 각각 감지 알고리즘, 버퍼 사이즈, 버퍼 간격 사이즈, 샘플링 레이트인데 기본값 사용해서 안중요함
-        pDetection.set_unit("Hz")                                       # set_unit : 주파수 감지 객체의 단위를 Hz로 정한 거임
-        pDetection.set_silence(-20)                                     # 소리 감지 임계값을 -40dB로 설정(** 이걸로 삐슝빠슝 없앨 수 있긴한데 노래마다 다를거같아서 못건드리고 있음. 서버 열어서 돌려보고 판단)
+        # PCM 형식으로 저장된 WAV 파일 읽기
+        pDetection = aubio.pitch("default", 2048, 2048//2, samplerate)
+        pDetection.set_unit("Hz")
+        pDetection.set_silence(-20)
 
-        src = aubio.source(file_path, 44100, 2048//2)    # 오디오 파일 가져오는 코드(liborsa의 file.readwav랑 똑같은 역할)
+        # aubio.source에 PCM 형식의 오디오 데이터 전달
+        src = aubio.source(file_path, samplerate, 2048//2)
+
         total_frames = 0                                 # 현재까지 재생한 프레임 위치(시간) 축적 변수
 
         pitches = []            # 감지된 주파수를 저장하는 리스트
@@ -414,13 +421,14 @@ class ExtractYoutube():
             playlist_title = song['playlist_title']
             music_path = f"./music/{playlist_title}/{music_title}.mp3"
             spleeter_path = f"./spleeter/{playlist_title}/{music_title}.wav"
+            highest_pitch = -1
             
-            if song['duration'] >= 600:
+            if song['duration'] > 420 or song['duration']< 90:
                 print("It's too long music")
                 continue
             try:
                 # Download
-                if not song['youtube_downloaded'] or song['youtube_downloaded'] == "False" or '[Errno 2]' in song['youtube_downloaded'] or "System error" in song['youtube_downloaded']:
+                if not song['youtube_downloaded'] or song['youtube_downloaded'] == "False"                                                               or '[Errno 2]' in song['youtube_downloaded']:# or "System error" in song['youtube_downloaded']:
                     self.download_youtube_video_as_mp3(url,music_title,playlist_title)
                     data.loc[i, 'youtube_downloaded'] = True
                     time.sleep(0.3)
@@ -428,27 +436,32 @@ class ExtractYoutube():
                 if not song['mfcc_origin'] or song['mfcc_origin'] == "False":
                     mfcc_val = self.extract_mfcc_features(music_path)
                     data.loc[i, 'mfcc_origin'] = str(mfcc_val)
+                    print("mfcc completed")
                 # spleeter
                 if not song['spleeter'] or song['spleeter'] == "False":
                     self.calSpleeter(spleeter_path,music_path)
                     data.loc[i, 'spleeter'] = True
                     time.sleep(0.3)
+                if not song['vocal_range'] or song['vocal_range'] == "False":
+                    highest_pitch = self.extract_highest_pitch(spleeter_path)
+                    data.loc[i, 'vocal_range'] = str(highest_pitch)
                     data.to_csv(playlist_csv,index = False)
-                
+                    print("vocal_range_extract completed")
                 try:
                     os.remove(music_path)
                     self.sendS3(spleeter_path,spleeter_path)
                     os.remove(spleeter_path)
-                    highest_pitch = self.extract_highest_pitch(spleeter_path)
                     print(f"{i}th music is completed")
-                    return highest_pitch
+                    if i == len(data)-1:
+                        return highest_pitch
                 except OSError as e:
                     print(f"삭제 중 오류가 발생했습니다:", e)
-                    return {"최고음 추출 실패"}
+                    # return {f"{e}"}
             except Exception as e:
                 print(e)
-                data.loc[i] = [music_title,url,song['id'],playlist_title,song['duration'],song['uploader'],e,False,False,False,False,False]
-                data.to_csv(playlist_csv,index = False)
+                # data.loc[i] = [music_title,url,song['id'],playlist_title,song['duration'],song['uploader'],e,False,False,False,False,False]
+                # data.to_csv(playlist_csv,index = False)
+                # return e
 
     def activate_extrawav(self,playlist_csv,data):
         # 폴더 생성
