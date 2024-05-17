@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -66,30 +67,28 @@ public class MusicService {
     }
 
 
-    // 홈 버튼을 눌렀을 때 추천되는 노래 10곡씩 추출
-    public Map<String, List<MusicDetailsResponse>> get10MusicByGenreAndPitch(Long memberId) {
+    // 홈 버튼을 눌렀을 때 사용자 음계보다 낮은 노래 10곡 추천
+    public List<MusicDetailsResponse> get10MusicByPitch(Long memberId) {
 
-        Map<String, List<MusicDetailsResponse>> result = new ConcurrentHashMap<>();
+        List<MusicDetailsResponse> musicDetailsResponses = new ArrayList<>();
 
         Member findMember = memberRepository.findById(memberId);
         Double highPitch = findMember.getHighPitch();
 
-        if (highPitch != null) {
-            // 사용자 음계보다 낮은 음악 반환
-            List<Music> musics = musicRepository.find10ByPitch(highPitch);
-            List<MusicDetailsResponse> youtubeRespons = convertToMusicResponse(musics);
-            result.put("Pitch", youtubeRespons);
-        }
-
-        // 장르별 음악 반환
-        for (Genre genre : Genre.values()) {
-            List<Music> musics = musicRepository.find10ByGenre(genre);
-            List<MusicDetailsResponse> youtubeRespons = convertToMusicResponse(musics);
-            result.put(genre.name(), youtubeRespons);
-        }
-
-        return result;
+        List<Music> extracted10ByPitch = musicRepository.find10ByPitch(highPitch);
+        return convertToMusicResponse(extracted10ByPitch);
     }
+
+    // 입력된 장르에 맞는 노래 10곡 추천
+    public List<MusicDetailsResponse> get10MusicByGenre(Genre genre) {
+
+        List<MusicDetailsResponse> musicDetailsResponses = new ArrayList<>();
+
+        // 장르별 음악 반환{
+        List<Music> extracted10ByGenre = musicRepository.find10ByGenre(genre);
+        return convertToMusicResponse(extracted10ByGenre);
+    }
+
 
     private List<MusicDetailsResponse> convertToMusicResponse(List<Music> musics) {
         return musics.stream().map(music -> {

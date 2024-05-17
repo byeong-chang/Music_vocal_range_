@@ -4,6 +4,7 @@ import capstone.tunemaker.dto.create.CustomMemberDetails;
 import capstone.tunemaker.dto.playlist.AddMusicRequest;
 import capstone.tunemaker.dto.playlist.PlaylistResponse;
 import capstone.tunemaker.dto.playlist.PlaylistTitle;
+import capstone.tunemaker.dto.playlist.RemoveMusicRequest;
 import capstone.tunemaker.entity.Playlist;
 import capstone.tunemaker.service.PlaylistService;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +41,7 @@ public class PlaylistApiController {
     }
 
     @PostMapping("/music/playlist/remove")
-    public void removeMusicFromPlaylist(@RequestBody @Validated AddMusicRequest request) {
+    public void removeMusicFromPlaylist(@RequestBody @Validated RemoveMusicRequest request) {
         playlistService.removeMusicFromPlaylist(request.getPlaylistId(), request.getMusicId());
     }
 
