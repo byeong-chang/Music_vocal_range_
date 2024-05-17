@@ -2,19 +2,89 @@ import ExtractYoutube
 import pandas as pd
 
 et = ExtractYoutube.ExtractYoutube()
-data = pd.read_csv("trot.csv")
-et.run("trot.csv",data)
+
+class LinkItem():
+    def __init__(self,youtubeUrl,userPitch):
+        self.youtubeUrl= youtubeUrl
+        self.userPitch = userPitch
+
+item = LinkItem("https://www.youtube.com/watch?v=YBEUXfT7_48", 503.2)
+'''
+    사용자가 입력한 youtube_link의 음역대를 추출하여 반환한다.
+    DB에 저장하기 위한 추가 변환도 수행한다.
+'''
+highest_pitch = 130
+key_diff = 0
+current_scale = ''
+total_value = [str(i) for i in range(10)]
+
+    # youtube_link = item.youtubeUrl
+    # total_value = extract_youtube.get_song_info(youtube_link,"user_input")
+    # song = pd.DataFrame(data = [total_value],columns=["title","link","id","playlist_title","duration","uploader","youtube_downloaded","spleeter","remove_space_wav_to_s3","vocal_range","mfcc_origin","mfcc_after_transform"])
+    # highest_pitch =extract_youtube.run("user_input.csv",song)
+
+
+
+# 플레이리스트 모음 -> 링크들 모음
+# lst = [
+# 'https://www.youtube.com/watch?v=2QUDnSZ_Vf0&list=RDCLAK5uy_m9ty3WvAucm7-5KsKdro9_HnocE8LSS9o&index=2',
+# 'https://www.youtube.com/watch?v=ofdrwJimD1A&list=RDCLAK5uy_mWqhoadUUp9crhEkmZZkdExj7YpBuFBEQ&index=2',
+# 'https://www.youtube.com/watch?v=YPvrhziJAno&list=RDCLAK5uy_lv6V83HLaJMQDx8YFtfSAaZ6GGvSqI6PE&index=2',
+# 'https://www.youtube.com/watch?v=PlOPWA_DE4U&list=RDCLAK5uy_khzJMzOMfZAw7x0dswMTl8QVBgr-yKnVw&index=2',
+# 'https://www.youtube.com/watch?v=p_GM_NW4oXY&list=RDCLAK5uy_lJ_8Yzoj3LEEzFtO3JXiD0OkwCV4aAKko&index=2'
+# ]
+
+# for link in lst:
+#     et.get_playlist_info(link,'jazz3')
+
+
+# 중복비교
+# type = "jazz"
+# data1 = pd.read_csv("full_data.csv")
+# data2 = pd.read_csv(f"{type}3.csv")
+# lst = []
+
+# print(len(data1))
+# print(len(data2))
+# remove_space = []
+# for j in range(len(data2)):
+#     if sum(data1['id'] == data2['id'][j]) >0:
+#         remove_space.append(j)
+# for j in range(len(data2)):
+#     if sum(data2['id'] == data2['id'][j]) >1:
+#         remove_space.append(j)
+
+# print(remove_space)
+# remove_space = list(set(remove_space))
+# data2 = data2.drop(remove_space)
+# print(len(data2))
+# data2.to_csv(f"{type}3.csv",index = False)
+
+
+# 연산하여 데이터 저장
+
+# data = pd.read_csv("ballad3.csv")
+# et.run("ballad3.csv",data)
+# et.activate_extrawav("ballad.csv",data)
+# et.sendS3("ballad.csv","./data/bllad.csv")
+
+
+# data = pd.read_csv("trot3.csv")
+# et.run("trot3.csv",data)
 # et.activate_extrawav("trot.csv",data)
 # et.sendS3("trot.csv","./data/trot.csv")
 
-data = pd.read_csv("ballad.csv")
-et.run("ballad.csv",data)
-# et.activate_extrawav("ballad.csv",data)
-# et.sendS3("ballad.csv","./data/ballad.csv")
+# data = pd.read_csv("jazz3.csv")
+# et.run("jazz3.csv",data)
+# et.activate_extrawav("trot.csv",data)
+# et.sendS3("trot.csv","./data/trot.csv")
 
-# et.activate_extrawav("infos.csv")
-# et.activate_extrawav()
-# et.activate_extrawav()
+# data = pd.read_csv("hiphop3.csv")
+# et.run("hiphop3.csv",data)
+# et.activate_extrawav("trot.csv",data)
+# et.sendS3("trot.csv","./data/trot.csv")
+
+
 # et.sendS3("jazz.csv","./data/jazz.csv")
 # et.downloadS3("hiphop.csv","./data/hiphop.csv")
 # et.downloadS3("jazz.csv","./data/jazz.csv")
