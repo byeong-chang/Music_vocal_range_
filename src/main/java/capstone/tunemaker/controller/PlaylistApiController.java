@@ -44,7 +44,4 @@ public class PlaylistApiController {
         playlistService.removeMusicFromPlaylist(request.getPlaylistId(), request.getMusicId());
     }
 
-
-
-
 }

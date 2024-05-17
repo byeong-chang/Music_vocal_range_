@@ -43,7 +43,7 @@ public class VocalTestService {
         );
 
         VocalResponse vocalResponse = responseEntity.getBody();
-//        log.info("accuracy = {}", vocalResponse.getAccuracy());
+        //log.info("accuracy = {}", vocalResponse.getAccuracy());
 
         // 모듈로부터 얻은 데이터 저장소에 추가
         String target = vocalResponse.getTarget();
@@ -76,4 +76,6 @@ public class VocalTestService {
         }
         findMember.setPitch(pitch);
     }
+
+
 }

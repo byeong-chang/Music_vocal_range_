@@ -30,7 +30,7 @@ public class MemberSettingApiController {
         myPageService.updateBasicInfo(memberDetails.getMemberId(), request);
     }
 
-    @PostMapping("mypage/updatepassword")
+    @PostMapping("/mypage/updatepassword")
     public void updatePassword(@AuthenticationPrincipal CustomMemberDetails memberDetails,
                                @RequestBody @Validated UpdatePasswordRequest request){
         myPageService.updatePasswordInfo(memberDetails.getMemberId(), request);
