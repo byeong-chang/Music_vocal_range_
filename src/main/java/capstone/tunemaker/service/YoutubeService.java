@@ -2,7 +2,9 @@ package capstone.tunemaker.service;
 
 import capstone.tunemaker.dto.youtube.YoutubeRequest;
 import capstone.tunemaker.dto.youtube.MusicResponse;
+import capstone.tunemaker.entity.Member;
 import capstone.tunemaker.entity.Music;
+import capstone.tunemaker.repository.MemberRepository;
 import capstone.tunemaker.repository.MusicRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,11 +27,16 @@ public class YoutubeService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final MusicRepository musicRepository;
+    private final MemberRepository memberRepository;
 
-    public MusicResponse canUserSingThisSong(YoutubeRequest youtubeRequest) throws ExecutionException, InterruptedException {
+    public MusicResponse canUserSingThisSong(Long memberId, YoutubeRequest youtubeRequest) throws ExecutionException, InterruptedException {
 
         String extractedUrlId = extractUrlId(youtubeRequest.getYoutubeUrl());
         Music music = musicRepository.findByUrlId(extractedUrlId);
+
+        Member findMember = memberRepository.findById(memberId);
+        Double highPitch = findMember.getHighPitch();
+        youtubeRequest.setHighPitch(highPitch);
 
         if (music != null) {
             MusicResponse musicResponse = new MusicResponse();
