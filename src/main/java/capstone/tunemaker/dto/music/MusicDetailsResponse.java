@@ -1,4 +1,4 @@
-package capstone.tunemaker.dto.youtube;
+package capstone.tunemaker.dto.music;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MusicResponse {
+public class MusicDetailsResponse {
 
     private Long Id;
 

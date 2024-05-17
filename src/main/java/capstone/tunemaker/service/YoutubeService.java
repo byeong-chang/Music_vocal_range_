@@ -1,7 +1,8 @@
 package capstone.tunemaker.service;
 
 import capstone.tunemaker.dto.youtube.YoutubeRequest;
-import capstone.tunemaker.dto.youtube.MusicResponse;
+import capstone.tunemaker.dto.music.MusicDetailsResponse;
+import capstone.tunemaker.dto.youtube.YoutubeResponse;
 import capstone.tunemaker.entity.Member;
 import capstone.tunemaker.entity.Music;
 import capstone.tunemaker.repository.MemberRepository;
@@ -29,52 +30,55 @@ public class YoutubeService {
     private final MusicRepository musicRepository;
     private final MemberRepository memberRepository;
 
-    public MusicResponse canUserSingThisSong(Long memberId, YoutubeRequest youtubeRequest) throws ExecutionException, InterruptedException {
+    public YoutubeResponse canUserSingThisSong(Long memberId, YoutubeRequest youtubeRequest) throws ExecutionException, InterruptedException {
 
         String extractedUrlId = extractUrlId(youtubeRequest.getYoutubeUrl());
         Music music = musicRepository.findByUrlId(extractedUrlId);
 
         Member findMember = memberRepository.findById(memberId);
         Double highPitch = findMember.getHighPitch();
-        youtubeRequest.setHighPitch(highPitch);
+        youtubeRequest.setUserPitch(highPitch);
+
+        log.warn(youtubeRequest.getYoutubeUrl());
+        log.warn(String.valueOf(youtubeRequest.getUserPitch()));
 
         if (music != null) {
-            MusicResponse musicResponse = new MusicResponse();
-            musicResponse.setYoutubeUrlId(music.getUrlId());
-            return musicResponse;
+            YoutubeResponse youtubeResponse = new YoutubeResponse();
+            youtubeResponse.setYoutubeUrlId(music.getUrlId());
+            return youtubeResponse;
         } else {
             HttpEntity<YoutubeRequest> requestEntity = new HttpEntity<>(youtubeRequest);
-            CompletableFuture<MusicResponse> future = CompletableFuture.supplyAsync(() -> {
-                ResponseEntity<MusicResponse> responseEntity = restTemplate.exchange(
+            CompletableFuture<YoutubeResponse> future = CompletableFuture.supplyAsync(() -> {
+                ResponseEntity<YoutubeResponse> responseEntity = restTemplate.exchange(
                         "http://52.79.116.144:8000/youtube_extract",
                         HttpMethod.POST,
                         requestEntity,
-                        MusicResponse.class
+                        YoutubeResponse.class
                 );
                 return responseEntity.getBody();
             });
 
-            MusicResponse musicResponse = future.get();
+            YoutubeResponse youtubeResponse = future.get();
 
-            if (musicResponse != null) {
-                saveMusic(musicResponse);
+            if (youtubeResponse != null) {
+                saveMusic(youtubeResponse);
             }
-            return musicResponse;
+            return youtubeResponse;
         }
     }
 
     @Async
-    public void saveMusic(MusicResponse musicResponse) {
+    public void saveMusic(YoutubeResponse youtubeResponse) {
 
         Music newMusic = new Music();
 
-        newMusic.setTitle(musicResponse.getTitle());
-        newMusic.setUrl(musicResponse.getYoutubeUrl());
-        newMusic.setHighPitch(musicResponse.getHighPitch());
-        newMusic.setDuration(musicResponse.getDuration());
-        newMusic.setPlaylistTitle(musicResponse.getPlaylistTitle());
-        newMusic.setUploader(musicResponse.getUploader());
-        newMusic.setUrlId(musicResponse.getYoutubeUrlId());
+        newMusic.setTitle(youtubeResponse.getTitle());
+        newMusic.setUrl(youtubeResponse.getYoutubeUrl());
+        newMusic.setHighPitch(youtubeResponse.getHighPitch());
+        newMusic.setDuration(youtubeResponse.getDuration());
+        newMusic.setPlaylistTitle(youtubeResponse.getPlaylistTitle());
+        newMusic.setUploader(youtubeResponse.getUploader());
+        newMusic.setUrlId(youtubeResponse.getYoutubeUrlId());
 
         musicRepository.save(newMusic);
     }

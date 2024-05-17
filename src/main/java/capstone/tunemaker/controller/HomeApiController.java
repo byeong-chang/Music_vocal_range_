@@ -1,7 +1,7 @@
 package capstone.tunemaker.controller;
 
 import capstone.tunemaker.dto.create.CustomMemberDetails;
-import capstone.tunemaker.dto.youtube.MusicResponse;
+import capstone.tunemaker.dto.music.MusicDetailsResponse;
 import capstone.tunemaker.service.MusicService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ public class HomeApiController {
     private final MusicService musicService;
 
     @GetMapping("/home")
-    public Map<String, List<MusicResponse>> loadHome(@AuthenticationPrincipal CustomMemberDetails memberDetails) {
+    public Map<String, List<MusicDetailsResponse>> loadHome(@AuthenticationPrincipal CustomMemberDetails memberDetails) {
         return musicService.get10MusicByGenreAndPitch(memberDetails.getMemberId());
     }
 
