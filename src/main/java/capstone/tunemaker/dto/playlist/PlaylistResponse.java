@@ -12,7 +12,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PlaylistResponse {
-    private Long id;
-    private String title;
-    private List<PlaylistAndMusicResponse> playlistAndMusicList = new ArrayList<>();
+    private String playlistTitle;
+    private Long playlistId;
 }

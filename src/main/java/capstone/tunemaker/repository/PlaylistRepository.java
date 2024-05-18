@@ -27,4 +27,9 @@ public class PlaylistRepository {
                 .setParameter("member", member)
                 .getResultList();
     }
+
+    public void delete(Playlist playlist) {
+        em.remove(playlist);
+    }
+
 }

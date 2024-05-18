@@ -15,6 +15,4 @@ public class YoutubeRequest {
     @Size(min=10, max=500)
     private String youtubeUrl;
 
-    private Double userPitch;
-
 }

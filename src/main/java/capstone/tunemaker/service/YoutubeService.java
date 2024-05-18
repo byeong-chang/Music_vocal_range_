@@ -1,5 +1,6 @@
 package capstone.tunemaker.service;
 
+import capstone.tunemaker.dto.youtube.YoutubeFastApiRequest;
 import capstone.tunemaker.dto.youtube.YoutubeRequest;
 import capstone.tunemaker.dto.music.MusicDetailsResponse;
 import capstone.tunemaker.dto.youtube.YoutubeResponse;
@@ -16,9 +17,13 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+
 
 @Service
 @RequiredArgsConstructor
@@ -37,17 +42,22 @@ public class YoutubeService {
 
         Member findMember = memberRepository.findById(memberId);
         Double highPitch = findMember.getHighPitch();
-        youtubeRequest.setUserPitch(highPitch);
 
-        log.warn(youtubeRequest.getYoutubeUrl());
-        log.warn(String.valueOf(youtubeRequest.getUserPitch()));
+        YoutubeFastApiRequest youtubeFastApiRequest = new YoutubeFastApiRequest();
+
+        youtubeFastApiRequest.setYoutubeUrl(youtubeRequest.getYoutubeUrl());
+        youtubeFastApiRequest.setUserPitch(highPitch);
+
 
         if (music != null) {
             YoutubeResponse youtubeResponse = new YoutubeResponse();
             youtubeResponse.setYoutubeUrlId(music.getUrlId());
+            youtubeResponse.setYoutubeUrl(music.getUrl());
+            youtubeResponse.setTitle(music.getTitle());
+            youtubeResponse.setHighPitch(music.getHighPitch());
             return youtubeResponse;
         } else {
-            HttpEntity<YoutubeRequest> requestEntity = new HttpEntity<>(youtubeRequest);
+            HttpEntity<YoutubeFastApiRequest> requestEntity = new HttpEntity<>(youtubeFastApiRequest);
             CompletableFuture<YoutubeResponse> future = CompletableFuture.supplyAsync(() -> {
                 ResponseEntity<YoutubeResponse> responseEntity = restTemplate.exchange(
                         "http://52.79.116.144:8000/youtube_extract",
@@ -55,10 +65,12 @@ public class YoutubeService {
                         requestEntity,
                         YoutubeResponse.class
                 );
+
                 return responseEntity.getBody();
             });
 
             YoutubeResponse youtubeResponse = future.get();
+            youtubeResponse.setYoutubeUrlId(extractedUrlId);
 
             if (youtubeResponse != null) {
                 saveMusic(youtubeResponse);

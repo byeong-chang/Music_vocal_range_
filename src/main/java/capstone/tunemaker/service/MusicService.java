@@ -30,9 +30,10 @@ public class MusicService {
 
 
     // 노래 "하나" 터치했을 때, 노래의 자세한 정보
-    public MusicDetailsResponse searchMusicDetails(MusicDetailsRequest request) {
+    public MusicDetailsResponse searchMusicDetails(String youtubeUrlId) {
 
-        Music findMusic = musicRepository.findByUrlId(request.getYoutubeUrlId());
+        Music findMusic = musicRepository.findByUrlId(youtubeUrlId);
+        log.info(findMusic.getUrlId());
 
         MusicDetailsResponse musicDetailsResponse = new MusicDetailsResponse();
 

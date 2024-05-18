@@ -1,5 +1,6 @@
 package capstone.tunemaker.service;
 
+import capstone.tunemaker.dto.music.MusicDetailsResponse;
 import capstone.tunemaker.dto.playlist.PlaylistAndMusicResponse;
 import capstone.tunemaker.dto.playlist.PlaylistResponse;
 import capstone.tunemaker.dto.playlist.PlaylistTitle;
@@ -32,6 +33,7 @@ public class PlaylistService {
     private final PlaylistAndMusicRepository playlistAndMusicRepository;
 
 
+    // 사용자 지정 플레이리스트를 생성하는 부분
     public void createPlaylist(Long memberId, String title) {
 
         Member findMember = memberRepository.findById(memberId);
@@ -42,34 +44,21 @@ public class PlaylistService {
         playlistRepository.save(playlist);
     }
 
-    public List<PlaylistResponse> getPlaylists(Long memberId) {
 
+    // 사용자 지정 플레이리스트를 삭제하는 부분
+    public void deletePlaylist(Long memberId, Long playlistId) {
         Member findMember = memberRepository.findById(memberId);
-        List<Playlist> playlists = playlistRepository.findByMember(findMember);
-        List<PlaylistResponse> playlistResponses = new ArrayList<>();
+        Playlist findPlaylist = playlistRepository.findById(playlistId);
 
-        for (Playlist playlist : playlists) {
-            List<PlaylistAndMusicResponse> playlistAndMusicResponses = new ArrayList<>();
-            for (PlaylistAndMusic pam : playlist.getPlaylistAndMusicList()) {
-                PlaylistAndMusicResponse pamResponse = new PlaylistAndMusicResponse(
-                        pam.getId(),
-                        pam.getMusic().getId(),
-                        pam.getMusic().getTitle()
-                );
-                playlistAndMusicResponses.add(pamResponse);
-            }
-            PlaylistResponse playlistResponse = new PlaylistResponse(
-                    playlist.getId(),
-                    playlist.getTitle(),
-                    playlistAndMusicResponses
-            );
-            playlistResponses.add(playlistResponse);
+        if (findPlaylist == null || !findPlaylist.getMember().equals(findMember)) {
+            throw new IllegalArgumentException("Invalid playlist ID or the playlist does not belong to the member");
         }
-        return playlistResponses;
+
+        playlistRepository.delete(findPlaylist);
     }
 
 
-    // 플레이리스트에 곡 추가
+    // 플레이리스트에 곡을 추가하는 부분
     public void addMusicToPlaylist(Long playlistId, Long musicId) {
 
         Playlist playlist = playlistRepository.findById(playlistId);
@@ -91,7 +80,7 @@ public class PlaylistService {
     }
 
 
-    // 플레이리스트에 곡 제거
+    // 플레이리스트에 곡을 제거하는 부분
     public void removeMusicFromPlaylist(Long playlistId, Long musicId) {
 
         Playlist playlist = playlistRepository.findById(playlistId);
@@ -111,5 +100,48 @@ public class PlaylistService {
 
         playlistAndMusicRepository.delete(playlistAndMusic);
     }
+
+    // 사용자가 만든 플레이리스트의 목록을 반환하는 부분
+    public List<PlaylistResponse> getPlaylists(Long memberId) {
+
+        Member findMember = memberRepository.findById(memberId);
+        List<Playlist> playlists = playlistRepository.findByMember(findMember);
+        List<PlaylistResponse> playlistResponses = new ArrayList<>();
+
+        for (Playlist playlist : playlists) {
+            playlistResponses.add(new PlaylistResponse(playlist.getTitle(), playlist.getId()));
+        }
+
+        return playlistResponses;
+    }
+
+    // 사용자 지정 플레이리스트 내부에 있는 곡들을 반환하는 부분
+    public List<MusicDetailsResponse> getMusicsFromPlaylist(Long playlistId) {
+
+        Playlist playlist = playlistRepository.findById(playlistId);
+
+        if (playlist == null) {
+            throw new IllegalArgumentException("Invalid playlist ID");
+        }
+
+        List<MusicDetailsResponse> musicDetailsResponses = new ArrayList<>();
+
+        for (PlaylistAndMusic pliMusic : playlist.getPlaylistAndMusicList()) {
+            Music music = pliMusic.getMusic();
+            MusicDetailsResponse musicResponse = new MusicDetailsResponse(
+                    music.getId(),
+                    music.getTitle(),
+                    music.getUrl(),
+                    music.getHighPitch(),
+                    music.getDuration(),
+                    music.getPlaylistTitle(),
+                    music.getUploader(),
+                    music.getUrlId()
+            );
+            musicDetailsResponses.add(musicResponse);
+        }
+        return musicDetailsResponses;
+    }
+
 
 }

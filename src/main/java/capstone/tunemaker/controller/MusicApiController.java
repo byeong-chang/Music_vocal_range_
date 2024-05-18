@@ -20,9 +20,9 @@ public class MusicApiController {
     private final MusicService musicService;
 
 
-    @GetMapping("/music/details")
+    @PostMapping("/music/details")
     public MusicDetailsResponse showMusicDetails(@RequestBody @Validated MusicDetailsRequest request) {
-        return musicService.searchMusicDetails(request);
+        return musicService.searchMusicDetails(request.getYoutubeUrlId());
     }
 
 
