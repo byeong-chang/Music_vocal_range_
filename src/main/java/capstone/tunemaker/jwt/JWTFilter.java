@@ -42,6 +42,7 @@ public class JWTFilter extends OncePerRequestFilter {
         }
 
         log.info("Authorization in Header is exist");
+        tokenBlacklistService.printBlacklist();
 
         // 2. Bearer 부분 제거 후, 순수 토큰만 흭득(파싱)
         String token = authorization.split(" ")[1];

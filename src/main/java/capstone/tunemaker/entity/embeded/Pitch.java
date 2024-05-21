@@ -3,7 +3,7 @@ package capstone.tunemaker.entity.embeded;
 import jakarta.persistence.Embeddable;
 import lombok.Data;
 
-@Embeddable
+//@Embeddable
 @Data
 public class Pitch {
 

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
@@ -31,7 +32,9 @@ public class InquiryService {
         inquiry.setTitle(title);
         inquiry.setContents(contents);
         inquiry.setReply(false);
-        inquiry.setAddTime(LocalDateTime.now());
+        inquiry.setAddTime(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+
+        log.error(String.valueOf(inquiry.getAddTime()));
 
         inquiryRepository.save(inquiry);
     }

@@ -1,6 +1,6 @@
 package capstone.tunemaker.entity;
 
-import capstone.tunemaker.entity.embeded.Pitch;
+//import capstone.tunemaker.entity.embeded.Pitch;
 import capstone.tunemaker.entity.enums.Gender;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -30,8 +30,8 @@ public class Member {
 
     private String role;
 
-    @Embedded
-    private Pitch pitch;
+//    @Embedded
+//    private Pitch pitch;
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE)
     private List<Playlist> playlistList = new ArrayList<>();

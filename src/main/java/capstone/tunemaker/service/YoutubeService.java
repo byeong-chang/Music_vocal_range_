@@ -1,6 +1,7 @@
 package capstone.tunemaker.service;
 
 import capstone.tunemaker.dto.youtube.YoutubeFastApiRequest;
+import capstone.tunemaker.dto.youtube.YoutubeInDbFastApiRequest;
 import capstone.tunemaker.dto.youtube.YoutubeRequest;
 import capstone.tunemaker.dto.music.MusicDetailsResponse;
 import capstone.tunemaker.dto.youtube.YoutubeResponse;
@@ -43,24 +44,42 @@ public class YoutubeService {
         Member findMember = memberRepository.findById(memberId);
         Double highPitch = findMember.getHighPitch();
 
-        YoutubeFastApiRequest youtubeFastApiRequest = new YoutubeFastApiRequest();
+        if (music != null) { // 데이터베이스에 있는 경우
+            YoutubeInDbFastApiRequest youtubeInDbFastApiRequest = new YoutubeInDbFastApiRequest();
 
-        youtubeFastApiRequest.setYoutubeUrl(youtubeRequest.getYoutubeUrl());
-        youtubeFastApiRequest.setUserPitch(highPitch);
+            youtubeInDbFastApiRequest.setUserPitch(highPitch);
+            youtubeInDbFastApiRequest.setMusicPitch(music.getHighPitch());
+
+            HttpEntity<YoutubeInDbFastApiRequest> requestEntity = new HttpEntity<>(youtubeInDbFastApiRequest);
+            CompletableFuture<YoutubeResponse> future = CompletableFuture.supplyAsync(() -> {
+                ResponseEntity<YoutubeResponse> responseEntity = restTemplate.exchange(
+                        "http://15.164.85.121:8000/youtube_extract_inDB",
+                        HttpMethod.POST,
+                        requestEntity,
+                        YoutubeResponse.class
+                );
+
+                return responseEntity.getBody();
+            });
 
 
-        if (music != null) {
             YoutubeResponse youtubeResponse = new YoutubeResponse();
             youtubeResponse.setYoutubeUrlId(music.getUrlId());
             youtubeResponse.setYoutubeUrl(music.getUrl());
             youtubeResponse.setTitle(music.getTitle());
             youtubeResponse.setHighPitch(music.getHighPitch());
             return youtubeResponse;
-        } else {
+        } else { // 데이터베이스에 없는 경우
+
+            YoutubeFastApiRequest youtubeFastApiRequest = new YoutubeFastApiRequest();
+
+            youtubeFastApiRequest.setYoutubeUrl(youtubeRequest.getYoutubeUrl());
+            youtubeFastApiRequest.setUserPitch(highPitch);
+
             HttpEntity<YoutubeFastApiRequest> requestEntity = new HttpEntity<>(youtubeFastApiRequest);
             CompletableFuture<YoutubeResponse> future = CompletableFuture.supplyAsync(() -> {
                 ResponseEntity<YoutubeResponse> responseEntity = restTemplate.exchange(
-                        "http://52.79.116.144:8000/youtube_extract",
+                        "http://15.164.85.121:8000/youtube_extract",
                         HttpMethod.POST,
                         requestEntity,
                         YoutubeResponse.class

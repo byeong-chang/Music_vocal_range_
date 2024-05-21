@@ -33,21 +33,26 @@ public class VocalTestService {
 
     public VocalResponse testAccuracy(VocalRequest request) {
 
+        log.error(request.getTarget());
+        log.error(request.getS3Link());
+
         HttpEntity<VocalRequest> requestEntity = new HttpEntity<>(request);
 
         ResponseEntity<VocalResponse> responseEntity = restTemplate.exchange(
-                "http://52.79.116.144:8000/vocal_test",
+                "http://15.164.85.121:8000/vocal_test",
                 HttpMethod.POST,
                 requestEntity,
                 VocalResponse.class
         );
 
         VocalResponse vocalResponse = responseEntity.getBody();
-        //log.info("accuracy = {}", vocalResponse.getAccuracy());
 
         // 모듈로부터 얻은 데이터 저장소에 추가
         String target = vocalResponse.getTarget();
         Double accuracy = vocalResponse.getAccuracy();
+
+        log.error("fastAPI return target = {}", target);
+        log.error("fastAPI return target = {}", accuracy);
 
         if (!accuracyMap.containsKey(target) || accuracyMap.get(target) < accuracy) {
             accuracyMap.put(target, accuracy);
@@ -59,22 +64,72 @@ public class VocalTestService {
     public void saveBestResult(Long memberId) {
 
         Member findMember = memberRepository.findById(memberId);
-        Pitch pitch = findMember.getPitch();
 
-        for (Map.Entry<String, Double> entry : accuracyMap.entrySet()) {
+        Pitch pitch = new Pitch();
 
-            String target = entry.getKey();
-            Double accuracy = entry.getValue();
+        for (Field field : pitch.getClass().getDeclaredFields()) {
 
-            try {
-                Field field = pitch.getClass().getDeclaredField(target);
-                field.setAccessible(true);
-                field.set(pitch, accuracy.floatValue());
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                e.printStackTrace();
+            String target = field.getName();
+            Double accuracy = accuracyMap.get(target);
+
+            log.info("target = {}", target);
+            log.info("accuracy = {}", accuracy);
+
+            if (accuracy != null) {
+                try {
+                    field.setAccessible(true);
+                    field.set(pitch, accuracy.floatValue());
+
+                    if (accuracy >= 30.0) {
+                        findMember.setHighPitch(convertPitchToHz(target));
+                    }
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
-        findMember.setPitch(pitch);
+        // 변경된 Pitch 객체를 데이터베이스에 저장
+        memberRepository.save(findMember);
+    }
+
+    public Double convertPitchToHz(String target) {
+        Map<String, Double> PITCH_TO_HZ = new HashMap<String, Double>() {{
+            put("C3", 130.81);
+            put("CSharp3", 138.59);
+            put("D3", 146.83);
+            put("DSharp3", 155.56);
+            put("E3", 164.81);
+            put("F3", 174.61);
+            put("FSharp3", 185.00);
+            put("G3", 196.00);
+            put("GSharp3", 207.65);
+            put("A3", 220.00);
+            put("ASharp3", 233.08);
+            put("B3", 246.94);
+            put("C4", 261.63);
+            put("CSharp4", 277.18);
+            put("D4", 293.66);
+            put("DSharp4", 311.13);
+            put("E4", 329.63);
+            put("F4", 349.23);
+            put("FSharp4", 369.99);
+            put("G4", 392.00);
+            put("GSharp4", 415.30);
+            put("A4", 440.00);
+            put("ASharp4", 466.16);
+            put("B4", 493.88);
+            put("C5", 523.25);
+            put("CSharp5", 554.37);
+            put("D5", 587.33);
+            put("DSharp5", 622.25);
+            put("E5", 659.25);
+            put("F5", 698.46);
+            put("FSharp5", 739.99);
+            put("G5", 783.99);
+            put("GSharp5", 830.61);
+            put("A5", 880.00);
+        }};
+        return PITCH_TO_HZ.get(target);
     }
 
 

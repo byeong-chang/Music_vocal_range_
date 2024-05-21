@@ -24,7 +24,7 @@ public class Inquiry {
 
     private Boolean reply;
 
-    @Column(name = "create_at")
+    @Column(name = "create_at", columnDefinition= "DATETIME(0)")
     private LocalDateTime addTime;
 
 }
