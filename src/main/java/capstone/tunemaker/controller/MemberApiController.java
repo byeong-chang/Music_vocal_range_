@@ -20,8 +20,7 @@ public class MemberApiController {
 
     @PostMapping("/join")
     public String joinMember(@RequestBody @Validated CreateMemberRequest request){
-
-        if (!request.getPassword1().equals(request.getPassword2())) {
+        if (!request.isPasswordMatch()) {
             throw new IllegalArgumentException("Passwords do not match");
         }
         memberService.join(request);
@@ -31,9 +30,8 @@ public class MemberApiController {
 
     @GetMapping("/admin/logout")
     public void logout(HttpServletRequest request){
-        String authorization = request.getHeader("Authorization");
-        if (authorization != null && authorization.startsWith("Bearer ")) {
-            String token = authorization.split(" ")[1];
+        String token = tokenBlacklistService.extractToken(request.getHeader("Authorization"));
+        if (token != null) {
             tokenBlacklistService.blacklist(token);
         }
     }

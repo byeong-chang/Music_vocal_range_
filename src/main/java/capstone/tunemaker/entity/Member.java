@@ -30,9 +30,6 @@ public class Member {
 
     private String role;
 
-//    @Embedded
-//    private Pitch pitch;
-
     @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE)
     private List<Playlist> playlistList = new ArrayList<>();
 

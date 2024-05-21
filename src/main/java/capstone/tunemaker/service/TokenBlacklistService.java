@@ -21,6 +21,13 @@ public class TokenBlacklistService {
         blacklist.put(token, "");
     }
 
+    public String extractToken(String authorization) {
+        if (authorization != null && authorization.startsWith("Bearer ")) {
+            return authorization.split(" ")[1];
+        }
+        return null;
+    }
+
     public boolean isBlacklisted(String token) {
         return blacklist.containsKey(token);
     }

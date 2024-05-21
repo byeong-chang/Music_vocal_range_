@@ -19,6 +19,12 @@ public class MemberRepository {
         return em.find(Member.class, memberId);
     }
 
+    public Member findByIdInquiry(Long memberId){
+        return em.createQuery("select m from Member m left join fetch m.inquiries where m.id = :memberId", Member.class)
+                .setParameter("memberId", memberId)
+                .getSingleResult();
+    }
+
     public Boolean existsByUsername(String username) {
         Long count = em.createQuery("select count(u) from Member u where u.username = :username", Long.class)
                 .setParameter("username", username)

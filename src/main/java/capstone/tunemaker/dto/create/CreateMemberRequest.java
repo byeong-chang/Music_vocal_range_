@@ -29,6 +29,8 @@ public class CreateMemberRequest {
     @NotNull
     private Gender gender;
 
-
+    public boolean isPasswordMatch(){
+        return this.password1.equals(this.password2);
+    }
 
 }
