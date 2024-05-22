@@ -43,20 +43,18 @@ class ExtractYoutube():
                     aws_secret_access_key=self.secret_key,
                     region_name="ap-northeast-2"
                     )
-        
-        self.note_list = ['C1', 'C#1', 'D1', 'D#1', 'E1', 'F1', 'F#1', 'G1', 'G#1', 'A1', 'A#1', 'B1',
-             'C2', 'C#2', 'D2', 'D#2', 'E2', 'F2', 'F#2', 'G2', 'G#2', 'A2', 'A#2', 'B2',
-             'C3', 'C#3', 'D3', 'D#3', 'E3', 'F3', 'F#3', 'G3', 'G#3', 'A3', 'A#3', 'B3',
-             'C4', 'C#4', 'D4', 'D#4', 'E4', 'F4', 'F#4', 'G4', 'G#4', 'A4', 'A#4', 'B4',
-             'C5', 'C#5', 'D5', 'D#5', 'E5', 'F5', 'F#5', 'G5']
+    
 
-        self.scale_list = [[32.7, 34.65], [34.65, 36.71], [36.71, 38.89], [38.89, 41.20], [41.20, 43.65], [43.65, 46.25], [46.25, 49.00], [49.00, 51.91], [51.91, 55.00], 
-                    [55.00, 58.27], [58.27, 61.74], [61.74, 65.41],[65.41, 69.30], [69.30, 73.42], [73.42, 77.78], [77.78, 82.41], [82.41, 87.31], [87.31, 92.50],
-                    [92.50, 98.00], [98.00, 103.83], [103.83, 110.00], [110.00, 116.54], [116.54, 123.47], [123.47, 130.81],[130.81, 138.59], [138.59, 146.83], [146.83, 155.56],
+        self.note_list = [
+             'C3', 'CSharp3', 'D3', 'DSharp3', 'E3', 'F3', 'FSharp3', 'G3', 'GSharp3', 'A3', 'ASharp3', 'B3',
+             'C4', 'CSharp4', 'D4', 'DSharp4', 'E4', 'F4', 'FSharp4', 'G4', 'GSharp4', 'A4', 'ASharp4', 'B4',
+             'C5', 'CSharp5', 'D5', 'DSharp5', 'E5', 'F5', 'FSharp5', 'G5', 'GSharp5','A5', 'ASharp5']
+        
+        self.scale_list = [[130.81, 138.59], [138.59, 146.83], [146.83, 155.56],
                     [155.56, 164.81], [164.81, 174.61], [174.61, 185.00], [185.00, 196.00], [196.00, 207.65], [207.65, 220.00], [220.00, 233.08], [233.08, 246.94], [246.94, 261.63],
                     [261.63, 277.18], [277.18, 293.66], [293.66, 311.13], [311.13, 329.63], [329.63, 349.23], [349.23, 369.99], [369.99, 392.00], [392.00, 415.30], [415.30, 440.00], 
                     [440.00, 466.16], [466.16, 493.88], [493.88, 523.25],[523.25, 554.37], [554.37, 587.33], [587.33, 622.25], [622.25, 659.26], [659.26, 698.46], [698.46, 739.99], 
-                    [739.99, 783.99], [783.99, 830.61], [830.61, 880.00], [880.00, 932.33], [932.33, 987.77], [987.77, 1046.50]]
+                    [739.99, 783.99], [783.99, 830.61], [830.61, 880.00],[880.00,932.33]]
 
         self.note_freq_dict = dict(zip(self.note_list, self.scale_list))
         os.makedirs("./user", exist_ok=True)
@@ -182,19 +180,24 @@ class ExtractYoutube():
         shutil.rmtree(output_path)
 
     def remove_silence(self,file_path,output_path):
-        # Load the audio file
-        audio = AudioSegment.from_wav(file_path)
-        # Split on silence: this will return a list of audio segments
-        segments = split_on_silence(audio, min_silence_len=1000, silence_thresh=-40)
-        # Concatenate all the segments
-        output = sum(segments)
-        # Export the result
-        print(output)
-        output.export(output_path, format="wav")
-        file_path = file_path.replace("spleeter","music")
-        print(file_path)
-        # self.sendS3(output_path,file_path)
-
+        try:
+            # Load the audio file
+            audio = AudioSegment.from_wav(file_path)
+            # Split on silence: this will return a list of audio segments
+            segments = split_on_silence(audio, min_silence_len=1000, silence_thresh=-40)
+            # Concatenate all the segments
+            output = sum(segments)
+            # Export the result
+            # print(output)
+            if type(output) != int:
+                output.export(output_path, format="wav")
+            return True
+            # file_path = file_path.replace("spleeter","music")
+            # print(file_path)
+            # self.sendS3(output_path,file_path)
+        except Exception:
+            return False
+    
     def extract_mfcc_features(self, file_path):
         # wav 파일 로드
         y, sr = librosa.load(file_path)
@@ -266,7 +269,7 @@ class ExtractYoutube():
                                 filtered_pitches['value'].append(max(one_block['data']))
                                 filtered_pitches['time'].append(one_block['end'])
                 break
-
+        # print(filtered_pitches)
         return(max(filtered_pitches['value']))
     
     def remove_extraHz(self, file_path,output_path,highest_pitch):
@@ -344,7 +347,7 @@ class ExtractYoutube():
         return dict(zip(times,pitches))
 
     def estimate_c(self,user_voice_path, app_pitch):
-
+        
         # 사용자의 음성데이터로부터 시간별 주파수를 가져오는 부분
         user_frequency_dict = self.extract_user_frequency(user_voice_path)
         user_data_number = len(user_frequency_dict)
