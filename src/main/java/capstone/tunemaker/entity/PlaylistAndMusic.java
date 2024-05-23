@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter @Setter
 public class PlaylistAndMusic {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "playlistmusic_id")
     private Long id;
 

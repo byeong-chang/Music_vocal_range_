@@ -13,7 +13,7 @@ import java.util.List;
 public class Playlist {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "playlist_id")
     private Long id;
 

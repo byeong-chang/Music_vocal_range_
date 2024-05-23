@@ -37,4 +37,5 @@ public class MemberRepository {
                 .setParameter("username", username)
                 .getSingleResult();
     }
+
 }

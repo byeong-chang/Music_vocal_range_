@@ -22,9 +22,6 @@ import java.util.concurrent.ExecutionException;
 public class YoutubeApiController {
 
     private final YoutubeService youtubeService;
-    private final ConcurrentHashMap<Long, CompletableFuture<YoutubeResponse>> responseCache = new ConcurrentHashMap<>();
-
-
 
     @PostMapping("/admin/youtube")
     public YoutubeResponse youtubeUrlMusicInfo(@AuthenticationPrincipal CustomMemberDetails memberDetails,

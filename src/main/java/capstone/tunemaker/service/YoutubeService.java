@@ -53,7 +53,7 @@ public class YoutubeService {
             HttpEntity<YoutubeInDbFastApiRequest> requestEntity = new HttpEntity<>(youtubeInDbFastApiRequest);
             CompletableFuture<YoutubeResponse> future = CompletableFuture.supplyAsync(() -> {
                 ResponseEntity<YoutubeResponse> responseEntity = restTemplate.exchange(
-                        "http://15.164.85.121:8000/youtube_extract_inDB",
+                        "http://13.124.174.190:8000/youtube_extract_check",
                         HttpMethod.POST,
                         requestEntity,
                         YoutubeResponse.class
@@ -62,12 +62,15 @@ public class YoutubeService {
                 return responseEntity.getBody();
             });
 
-
-            YoutubeResponse youtubeResponse = new YoutubeResponse();
-            youtubeResponse.setYoutubeUrlId(music.getUrlId());
+            YoutubeResponse youtubeResponse = future.get(); // fastAPI로부터 받은 YoutubeResponse를 사용
+            youtubeResponse.setId(music.getId());
             youtubeResponse.setYoutubeUrl(music.getUrl());
+            youtubeResponse.setYoutubeUrlId(music.getUrlId());
             youtubeResponse.setTitle(music.getTitle());
-            youtubeResponse.setHighPitch(music.getHighPitch());
+            youtubeResponse.setHighPitch(highPitch);
+            youtubeResponse.setDuration(music.getDuration());
+            youtubeResponse.setKeyDiff(youtubeResponse.getKeyDiff());
+
             return youtubeResponse;
         } else { // 데이터베이스에 없는 경우
 
@@ -79,7 +82,7 @@ public class YoutubeService {
             HttpEntity<YoutubeFastApiRequest> requestEntity = new HttpEntity<>(youtubeFastApiRequest);
             CompletableFuture<YoutubeResponse> future = CompletableFuture.supplyAsync(() -> {
                 ResponseEntity<YoutubeResponse> responseEntity = restTemplate.exchange(
-                        "http://15.164.85.121:8000/youtube_extract",
+                        "http://13.124.174.190:8000/youtube_extract",
                         HttpMethod.POST,
                         requestEntity,
                         YoutubeResponse.class
@@ -115,16 +118,27 @@ public class YoutubeService {
     }
 
     private String extractUrlId(String url) {
-        int start = url.indexOf("watch?v=");
-        if (start != -1) {
-            start += "watch?v=".length();
+
+        String urlId = null;
+
+        if (url.contains("watch?v=")) {
+            int start = url.indexOf("watch?v=") + "watch?v=".length();
             int end = url.indexOf("&", start);
             if (end == -1) {
-                return url.substring(start);
+                urlId = url.substring(start);
             } else {
-                return url.substring(start, end);
+                urlId = url.substring(start, end);
+            }
+        } else if (url.contains("youtu.be/")) {
+            int start = url.indexOf("youtu.be/") + "youtu.be/".length();
+            int end = url.indexOf("?", start);
+            if (end == -1) {
+                urlId = url.substring(start);
+            } else {
+                urlId = url.substring(start, end);
             }
         }
-        return null;
+
+        return urlId;
     }
 }

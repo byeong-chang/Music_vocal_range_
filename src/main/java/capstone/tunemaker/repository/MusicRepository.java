@@ -42,21 +42,19 @@ public class MusicRepository {
     public List<Music> findByTitleContaining(String keyword){
         return em.createQuery("select m from Music as m where m.title like :keyword", Music.class)
                 .setParameter("keyword", "%" + keyword + "%")
+                .setMaxResults(50)
                 .getResultList();
     }
 
-
     public List<Music> find10ByGenre(Genre genre) {
-        return em.createQuery("select m from Music as m where m.genre = :genre order by m.id", Music.class)
-                .setParameter("genre", genre)
-                .setMaxResults(10)
+        return em.createNativeQuery("SELECT * FROM music WHERE genre = :genre ORDER BY RAND() LIMIT 10", Music.class)
+                .setParameter("genre", genre.name())
                 .getResultList();
     }
 
     public List<Music> find10ByPitch(Double highPitch) {
-        return em.createQuery("select m from Music as m where m.highPitch <= :highPitch", Music.class)
+        return em.createNativeQuery("SELECT * FROM music WHERE high_pitch <= :highPitch ORDER BY RAND() LIMIT 10", Music.class)
                 .setParameter("highPitch", highPitch)
-                .setMaxResults(10)
                 .getResultList();
     }
 
