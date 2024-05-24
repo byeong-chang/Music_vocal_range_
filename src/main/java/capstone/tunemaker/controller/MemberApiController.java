@@ -19,13 +19,11 @@ public class MemberApiController {
     private final MemberService memberService;
 
     @PostMapping("/join")
-    public String joinMember(@RequestBody @Validated CreateMemberRequest request){
+    public void joinMember(@RequestBody @Validated CreateMemberRequest request){
         if (!request.isPasswordMatch()) {
-            throw new IllegalArgumentException("Passwords do not match");
+            throw new IllegalArgumentException("패스워드가 일치하지 않습니다.");
         }
         memberService.join(request);
-
-        return "{\"message\":\"ok\"}";
     }
 
     @GetMapping("/admin/logout")

@@ -15,7 +15,7 @@ public class UpdateMemberRequest {
 
     @NotEmpty
     @Size(min=8)
-    @Email
+    @Email(message = "이메일 형식으로 입력해주세요.")
     private String username;
 
     @NotNull

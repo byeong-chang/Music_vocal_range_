@@ -55,10 +55,10 @@ public class MyPageService {
         Member findMember = memberRepository.findById(memberId);
 
         if (!bCryptPasswordEncoder.matches(request.getOriginPassword(), findMember.getPassword())) {
-            throw new IllegalArgumentException("The old password is incorrect");
+            throw new IllegalArgumentException("기존 비밀번호가 일치하지 않습니다.");
         }
         if (!request.getNewPassword1().equals(request.getNewPassword2())) {
-            throw new IllegalArgumentException("Passwords do not match");
+            throw new IllegalArgumentException("새로 입력한 비밀번호가 서로 일치하지 않습니다.");
         }
 
         findMember.setPassword(bCryptPasswordEncoder.encode(request.getNewPassword1()));

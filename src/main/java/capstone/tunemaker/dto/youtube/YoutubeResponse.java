@@ -27,4 +27,6 @@ public class YoutubeResponse {
 
     private Integer keyDiff;
 
+    private Boolean isYoutubeUrl;
+
 }

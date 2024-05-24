@@ -94,6 +94,10 @@ public class YoutubeService {
             YoutubeResponse youtubeResponse = future.get();
             youtubeResponse.setYoutubeUrlId(extractedUrlId);
 
+            if (!youtubeResponse.getIsYoutubeUrl()) {
+                throw new RuntimeException("정상적인 유튜브 URL이 아닙니다. 다시 입력해주세요.");
+            }
+
             if (youtubeResponse != null) {
                 saveMusic(youtubeResponse);
             }

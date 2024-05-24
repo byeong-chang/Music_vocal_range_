@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,8 +39,7 @@ public class MusicService {
     public List<MusicDetailsResponse> keywordSearch(SearchKeyword keyword) {
 
         if (keyword.getKeyword() == null || keyword.getKeyword().trim().isEmpty()) {
-            return null;
-            // throw new IllegalStateException("You should insert the keyword");
+            throw new IllegalStateException("키워드를 입력 해주세요.");
         }
         List<Music> musics = musicRepository.findByTitleContaining(keyword.getKeyword());
         return musics.stream().map(this::convertToMusicResponse).collect(Collectors.toList());
