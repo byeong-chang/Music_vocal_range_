@@ -44,16 +44,20 @@ public class YoutubeService {
         Member findMember = memberRepository.findById(memberId);
         Double highPitch = findMember.getHighPitch();
 
+
+
         if (music != null) { // 데이터베이스에 있는 경우
+
             YoutubeInDbFastApiRequest youtubeInDbFastApiRequest = new YoutubeInDbFastApiRequest();
 
             youtubeInDbFastApiRequest.setUserPitch(highPitch);
             youtubeInDbFastApiRequest.setMusicPitch(music.getHighPitch());
 
+
             HttpEntity<YoutubeInDbFastApiRequest> requestEntity = new HttpEntity<>(youtubeInDbFastApiRequest);
             CompletableFuture<YoutubeResponse> future = CompletableFuture.supplyAsync(() -> {
                 ResponseEntity<YoutubeResponse> responseEntity = restTemplate.exchange(
-                        "http://13.124.174.190:8000/youtube_extract_check",
+                        "http://3.34.75.131:8000/youtube_extract_check",
                         HttpMethod.POST,
                         requestEntity,
                         YoutubeResponse.class
@@ -62,12 +66,14 @@ public class YoutubeService {
                 return responseEntity.getBody();
             });
 
+
             YoutubeResponse youtubeResponse = future.get(); // fastAPI로부터 받은 YoutubeResponse를 사용
+
             youtubeResponse.setId(music.getId());
             youtubeResponse.setYoutubeUrl(music.getUrl());
             youtubeResponse.setYoutubeUrlId(music.getUrlId());
             youtubeResponse.setTitle(music.getTitle());
-            youtubeResponse.setHighPitch(highPitch);
+            youtubeResponse.setHighPitch(music.getHighPitch());
             youtubeResponse.setDuration(music.getDuration());
             youtubeResponse.setKeyDiff(youtubeResponse.getKeyDiff());
 
@@ -82,25 +88,26 @@ public class YoutubeService {
             HttpEntity<YoutubeFastApiRequest> requestEntity = new HttpEntity<>(youtubeFastApiRequest);
             CompletableFuture<YoutubeResponse> future = CompletableFuture.supplyAsync(() -> {
                 ResponseEntity<YoutubeResponse> responseEntity = restTemplate.exchange(
-                        "http://13.124.174.190:8000/youtube_extract",
+                        "http://3.34.75.131:8000/youtube_extract",
                         HttpMethod.POST,
                         requestEntity,
                         YoutubeResponse.class
                 );
-
                 return responseEntity.getBody();
             });
 
+
+
             YoutubeResponse youtubeResponse = future.get();
+
+
             youtubeResponse.setYoutubeUrlId(extractedUrlId);
 
             if (!youtubeResponse.getIsYoutubeUrl()) {
                 throw new RuntimeException("정상적인 유튜브 URL이 아닙니다. 다시 입력해주세요.");
             }
 
-            if (youtubeResponse != null) {
-                saveMusic(youtubeResponse);
-            }
+            saveMusic(youtubeResponse);
             return youtubeResponse;
         }
     }

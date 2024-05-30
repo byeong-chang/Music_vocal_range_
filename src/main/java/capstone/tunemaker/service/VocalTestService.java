@@ -18,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RequiredArgsConstructor
 @Transactional
@@ -29,17 +30,15 @@ public class VocalTestService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     // 테스트 결과를 임시로 저장하는 저장소 : 종료 버튼을 누르는 순간 여기서 가장 높은 값을 데이터베이스에 저장함.
-    private Map<String, Double> accuracyMap = new HashMap<>();
+    private Map<String, Double> accuracyMap = new ConcurrentHashMap<>();
 
     public VocalResponse testAccuracy(VocalRequest request) {
 
-        log.error(request.getTarget());
-        log.error(request.getS3Link());
 
         HttpEntity<VocalRequest> requestEntity = new HttpEntity<>(request);
 
         ResponseEntity<VocalResponse> responseEntity = restTemplate.exchange(
-                "http://13.124.174.190:8000/vocal_test",
+                "http://3.34.75.131:8000/vocal_test",
                 HttpMethod.POST,
                 requestEntity,
                 VocalResponse.class

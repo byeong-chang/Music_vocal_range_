@@ -25,7 +25,8 @@ public class YoutubeApiController {
 
     @PostMapping("/admin/youtube")
     public YoutubeResponse youtubeUrlMusicInfo(@AuthenticationPrincipal CustomMemberDetails memberDetails,
-                                               @RequestBody @Validated YoutubeRequest youtubeRequest) throws ExecutionException, InterruptedException {
+                                               @RequestBody @Validated YoutubeRequest youtubeRequest)
+                                                throws ExecutionException, InterruptedException {
         return youtubeService.canUserSingThisSong(memberDetails.getMemberId(), youtubeRequest);
     }
 

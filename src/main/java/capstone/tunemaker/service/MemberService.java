@@ -25,12 +25,11 @@ public class MemberService implements UserDetailsService {
     public void join(CreateMemberRequest request){
 
         if (memberRepository.existsByUsername(request.getUsername())) {
-            throw new IllegalStateException("Username you wrote is already exist.");
+            throw new IllegalStateException("이미 존재하는 아이디 입니다.");
         }
 
         Member newMember = createNewMember(request);
         memberRepository.save(newMember);
-
     }
 
     private Member createNewMember(CreateMemberRequest request) {

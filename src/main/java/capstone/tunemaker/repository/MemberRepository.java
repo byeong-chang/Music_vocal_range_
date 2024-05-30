@@ -3,10 +3,12 @@ package capstone.tunemaker.repository;
 import capstone.tunemaker.entity.Member;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
+@Slf4j
 public class MemberRepository {
 
     private final EntityManager em;
@@ -29,6 +31,7 @@ public class MemberRepository {
         Long count = em.createQuery("select count(u) from Member u where u.username = :username", Long.class)
                 .setParameter("username", username)
                 .getSingleResult();
+
         return count > 0;
     }
 
