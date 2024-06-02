@@ -1,20 +1,71 @@
 import ExtractYoutube
 import pandas as pd
+import subprocess
+    
 
-et = ExtractYoutube.ExtractYoutube()
-data = pd.read_csv("trot.csv")
-et.run("trot.csv",data)
-et.activate_extrawav("trot.csv",data)
-et.sendS3("trot.csv","./data/trot.csv")
+df = pd.read_csv("full_data_2.csv")
+print(len(df))
+# et = ExtractYoutube.ExtractYoutube()
 
-data = pd.read_csv("ballad.csv")
-et.run("ballad.csv",data)
-et.activate_extrawav("ballad.csv",data)
-et.sendS3("ballad.csv","./data/ballad.csv")
+# subprocess.run(['ffmpeg', '-i', "D3.mp3", "D3.wav"], 
+#                         stdout=subprocess.PIPE, 
+#                         stderr=subprocess.PIPE, 
+#                         text=True)
+# et.estimate_c("D3.wav","D3")
+# et.sendS3("D3.mp3","./vocal_test/d3.mp3")
+# 플레이리스트 모음 -> 링크들 모음
+# df = pd.read_excel("jazz3.xlsx")
 
-# et.activate_extrawav("infos.csv")
-# et.activate_extrawav()
-# et.activate_extrawav()
+# for link in df['url']:
+#     et.get_playlist_info(link,'jazz3')
+
+
+# 중복비교
+# type = "jazz"
+# data1 = pd.read_csv("full_data.csv")
+# data2 = pd.read_csv(f"{type}3.csv")
+# lst = []
+
+# print(len(data1))
+# print(len(data2))
+# remove_space = []
+# for j in range(len(data2)):
+#     if sum(data1['id'] == data2['id'][j]) >0:
+#         remove_space.append(j)
+# for j in range(len(data2)):
+#     if sum(data2['id'] == data2['id'][j]) >1:
+#         remove_space.append(j)
+
+# print(remove_space)
+# remove_space = list(set(remove_space))
+# data2 = data2.drop(remove_space)
+# print(len(data2))
+# data2.to_csv(f"{type}3.csv",index = False)
+
+
+# 연산하여 데이터 저장
+# data = pd.read_csv("ballad3.csv")
+# et.run("ballad3.csv",data)
+# et.activate_extrawav("ballad.csv",data)
+# et.sendS3("ballad.csv","./data/bllad.csv")
+
+
+# data = pd.read_csv("trot3.csv")
+# et.run("trot3.csv",data)
+# et.activate_extrawav("trot.csv",data)
+# et.sendS3("trot.csv","./data/trot.csv")
+
+# data = pd.read_csv("jazz3.csv")
+# et.run("jazz3.csv",data)
+# et.activate_extrawav("trot.csv",data)
+# et.sendS3("trot.csv","./data/trot.csv")
+
+# data = pd.read_csv("hiphop3.csv")
+# et.run("hiphop3.csv",data)
+# et.activate_extrawav("trot.csv",data)
+# et.sendS3("trot.csv","./data/trot.csv")
+
+
 # et.sendS3("jazz.csv","./data/jazz.csv")
 # et.downloadS3("hiphop.csv","./data/hiphop.csv")
 # et.downloadS3("jazz.csv","./data/jazz.csv")
