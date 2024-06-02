@@ -1,40 +1,22 @@
 import ExtractYoutube
 import pandas as pd
+import subprocess
+    
 
-et = ExtractYoutube.ExtractYoutube()
+df = pd.read_csv("full_data_2.csv")
+print(len(df))
+# et = ExtractYoutube.ExtractYoutube()
 
-class LinkItem():
-    def __init__(self,youtubeUrl,userPitch):
-        self.youtubeUrl= youtubeUrl
-        self.userPitch = userPitch
-
-item = LinkItem("https://www.youtube.com/watch?v=YBEUXfT7_48", 503.2)
-'''
-    사용자가 입력한 youtube_link의 음역대를 추출하여 반환한다.
-    DB에 저장하기 위한 추가 변환도 수행한다.
-'''
-highest_pitch = 130
-key_diff = 0
-current_scale = ''
-total_value = [str(i) for i in range(10)]
-
-    # youtube_link = item.youtubeUrl
-    # total_value = extract_youtube.get_song_info(youtube_link,"user_input")
-    # song = pd.DataFrame(data = [total_value],columns=["title","link","id","playlist_title","duration","uploader","youtube_downloaded","spleeter","remove_space_wav_to_s3","vocal_range","mfcc_origin","mfcc_after_transform"])
-    # highest_pitch =extract_youtube.run("user_input.csv",song)
-
-
-
+# subprocess.run(['ffmpeg', '-i', "D3.mp3", "D3.wav"], 
+#                         stdout=subprocess.PIPE, 
+#                         stderr=subprocess.PIPE, 
+#                         text=True)
+# et.estimate_c("D3.wav","D3")
+# et.sendS3("D3.mp3","./vocal_test/d3.mp3")
 # 플레이리스트 모음 -> 링크들 모음
-# lst = [
-# 'https://www.youtube.com/watch?v=2QUDnSZ_Vf0&list=RDCLAK5uy_m9ty3WvAucm7-5KsKdro9_HnocE8LSS9o&index=2',
-# 'https://www.youtube.com/watch?v=ofdrwJimD1A&list=RDCLAK5uy_mWqhoadUUp9crhEkmZZkdExj7YpBuFBEQ&index=2',
-# 'https://www.youtube.com/watch?v=YPvrhziJAno&list=RDCLAK5uy_lv6V83HLaJMQDx8YFtfSAaZ6GGvSqI6PE&index=2',
-# 'https://www.youtube.com/watch?v=PlOPWA_DE4U&list=RDCLAK5uy_khzJMzOMfZAw7x0dswMTl8QVBgr-yKnVw&index=2',
-# 'https://www.youtube.com/watch?v=p_GM_NW4oXY&list=RDCLAK5uy_lJ_8Yzoj3LEEzFtO3JXiD0OkwCV4aAKko&index=2'
-# ]
+# df = pd.read_excel("jazz3.xlsx")
 
-# for link in lst:
+# for link in df['url']:
 #     et.get_playlist_info(link,'jazz3')
 
 
@@ -62,7 +44,6 @@ total_value = [str(i) for i in range(10)]
 
 
 # 연산하여 데이터 저장
-
 # data = pd.read_csv("ballad3.csv")
 # et.run("ballad3.csv",data)
 # et.activate_extrawav("ballad.csv",data)

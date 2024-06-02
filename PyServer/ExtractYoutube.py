@@ -44,17 +44,18 @@ class ExtractYoutube():
                     region_name="ap-northeast-2"
                     )
     
-
+        self.scale_list = []
+        # th가 작아질수록 음역대 테스트가 쉬워짐
+        scale_th = 19
         self.note_list = [
              'C3', 'CSharp3', 'D3', 'DSharp3', 'E3', 'F3', 'FSharp3', 'G3', 'GSharp3', 'A3', 'ASharp3', 'B3',
              'C4', 'CSharp4', 'D4', 'DSharp4', 'E4', 'F4', 'FSharp4', 'G4', 'GSharp4', 'A4', 'ASharp4', 'B4',
              'C5', 'CSharp5', 'D5', 'DSharp5', 'E5', 'F5', 'FSharp5', 'G5', 'GSharp5','A5', 'ASharp5']
+        scale_list = [130.81, 138.59, 146.83, 155.56, 164.81, 174.61, 185.00, 196.00, 207.65, 220.00, 233.08, 246.94, 261.63, 277.18, 293.66, 311.13, 329.63, 349.23,
+        369.99, 392.00, 415.30, 440.00, 466.16, 493.88, 523.25, 554.37, 587.33, 622.25, 659.26, 698.46, 739.99, 783.99, 830.61, 880.00]
         
-        self.scale_list = [[130.81, 138.59], [138.59, 146.83], [146.83, 155.56],
-                    [155.56, 164.81], [164.81, 174.61], [174.61, 185.00], [185.00, 196.00], [196.00, 207.65], [207.65, 220.00], [220.00, 233.08], [233.08, 246.94], [246.94, 261.63],
-                    [261.63, 277.18], [277.18, 293.66], [293.66, 311.13], [311.13, 329.63], [329.63, 349.23], [349.23, 369.99], [369.99, 392.00], [392.00, 415.30], [415.30, 440.00], 
-                    [440.00, 466.16], [466.16, 493.88], [493.88, 523.25],[523.25, 554.37], [554.37, 587.33], [587.33, 622.25], [622.25, 659.26], [659.26, 698.46], [698.46, 739.99], 
-                    [739.99, 783.99], [783.99, 830.61], [830.61, 880.00],[880.00,932.33]]
+        for scale in scale_list:
+            self.scale_list.append([scale-scale/scale_th,scale+scale/scale_th])
 
         self.note_freq_dict = dict(zip(self.note_list, self.scale_list))
         os.makedirs("./user", exist_ok=True)
@@ -319,13 +320,6 @@ class ExtractYoutube():
 
         pitches = []            # 감지된 주파수를 저장하는 리스트
         times = []              # 주파수 감지 될때의 시간을 저장하는 리스트
-        max_pitch = 0           # 최고 음역대 저장 변수
-        max_pitch_note = None   # 최고 음역대(Hz)에 대응되는 음계 저장 변수 - ex) max_pitch가 400Hz일때 A#4 이런식으로 저장되게 하려고
-        filtered_pitches = {"time" : [], "value" : []}
-        one_block = {"start" : - 1 , "end" : -1 , "data" : []}
-        threshold_hz = 100
-        threshold_time = 0.3
-
 
         while True:
             samples, read = src()                             # samples : 버퍼 샘플 데이터 배열 / read : 버퍼 사이즈
@@ -343,7 +337,6 @@ class ExtractYoutube():
             total_frames += read
             if read < src.hop_size:
                 break
-
         return dict(zip(times,pitches))
 
     def estimate_c(self,user_voice_path, app_pitch):
@@ -409,6 +402,48 @@ class ExtractYoutube():
             cleaned_text = cleaned_text.replace(" "*i," ")
         cleaned_text = cleaned_text.replace(" ","_")
         return cleaned_text
+
+    def extract_youtube(self,playlist_csv,data):
+        for i in range(len(data)):
+            print(f"{i}th music is trying..")
+            # link 데이터 추출
+            song = data.loc[i]
+            music_title = song['title']
+            url = song['link']
+            playlist_title = song['playlist_title']
+            music_path = f"./music/{playlist_title}/{music_title}.mp3"
+            spleeter_path = f"./spleeter/{playlist_title}/{music_title}.wav"
+            highest_pitch = -1
+            
+            if song['duration'] > 420 or song['duration']< 90:
+                print("It's too long music")
+                continue
+            try:
+                # Download
+                if not song['youtube_downloaded'] or song['youtube_downloaded'] == "False"                                                               or '[Errno 2]' in song['youtube_downloaded']:# or "System error" in song['youtube_downloaded']:
+                    self.download_youtube_video_as_mp3(url,music_title,playlist_title)
+                    data.loc[i, 'youtube_downloaded'] = True
+                    time.sleep(0.3)
+                # spleeter
+                if not song['spleeter'] or song['spleeter'] == "False":
+                    self.calSpleeter(spleeter_path,music_path)
+                    data.loc[i, 'spleeter'] = True
+                    time.sleep(0.3)
+                if not song['vocal_range'] or song['vocal_range'] == "False":
+                    highest_pitch = self.extract_highest_pitch(spleeter_path)
+                    data.loc[i, 'vocal_range'] = str(highest_pitch)
+                    data.to_csv(playlist_csv,index = False)
+                    print("vocal_range_extract completed")
+                # os.remove(music_path)
+                # self.sendS3(spleeter_path,spleeter_path)
+                # os.remove(spleeter_path)
+                print(f"{i}th music is completed")
+                return highest_pitch
+            except Exception as e:
+                return e
+                # data.loc[i] = [music_title,url,song['id'],playlist_title,song['duration'],song['uploader'],e,False,False,False,False,False]
+                # data.to_csv(playlist_csv,index = False)
+                # return e
 
     def run(self,playlist_csv,data):
         # 폴더 생성
